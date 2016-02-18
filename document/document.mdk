@@ -1,17 +1,35 @@
 Title         : Optimization of the DNN program on the CPU+MIC Platform
-Author        : Univ
+Author        : University of Electronic Secience and Technology of China
 Logo          : False
 
 [TITLE]
+# Preface
+In the section we are required to optimize a `DNN(deep neural network)`
+program based on a standalone hybrid CPU+MIC platform. The detailed
+configuration is as follows: 
+
+![2016-02-18 23:01:13屏幕截图]
+
+[2016-02-18 23:01:13屏幕截图]: images/2016-02-18-23-01-13-.png "2016-02-18 23:01:13屏幕截图" { width:auto; max-width:90% }
+
+![2016-02-18 23:13:11屏幕截图]
+
+[2016-02-18 23:13:11屏幕截图]: images/2016-02-18-23-13-11-.png "2016-02-18 23:13:11屏幕截图" { width:auto; max-width:90% }
+
+
 
 # Analysis of the serial program
+First, we generate a call graph by using **Google perfools**,
+ a open source performance profiler, to have a glance though it. Every
+ square represents a function, and the bigger square is, the more time
+ corresponding function cost.
 
-First, we generate a call graph by using `Google perfools`, a open source performance profiler.sdfadf asadfasdfasdfasdf
+![origin]
+                                             
 
-* Read the [reference manual].
-* Explore the upper-right toolbox menu to discover how Markdown works. 
-* `Alt-Q` reformats the current paragraph.
+[origin]: images/origin.gif "origin" { width:auto; max-width:90% }
 
-Enjoy!
-
-[reference manual]: http://research.microsoft.com/en-us/um/people/daan/madoko/doc/reference.html  "Madoko refrence manual"
+Obviously, the hot spot is something about **MKL**. After googling
+and searching Intel document we know that MKL provides BLAS routinues,
+which includes a serial funcition named "cblas_?gemm" to omputes
+to compute a matrix-matrix product with general matrices.
