@@ -23,13 +23,13 @@ First, we generate a call graph by using **Google perfools**,
  a open source performance profiler, to have a glance though it. Every
  square represents a function, and the bigger square is, the more time
  corresponding function cost.
-
+ 
 ![origin]
-                                             
 
-[origin]: images/origin.gif "origin" { width:auto; max-width:90% }
+[origin]: images/origin.png "origin" { width:auto; max-width:90% }
 
 Obviously, the hot spot is something about **MKL**. After googling
 and searching Intel document we know that MKL provides BLAS routinues,
-which includes a serial funcition named "cblas_?gemm" to omputes
+which includes a serial funcition named "cblas_?gemm"
 to compute a matrix-matrix product with general matrices.
+
