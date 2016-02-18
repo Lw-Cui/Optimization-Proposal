@@ -1,0 +1,17 @@
+Title         : Optimization of the DNN program on the CPU+MIC Platform
+Author        : Univ
+Logo          : False
+
+[TITLE]
+
+# Analysis of the serial program
+
+First, we generate a call graph by using `Google perfools`, a open source performance profiler.sdfadf asadfasdfasdfasdf
+
+* Read the [reference manual].
+* Explore the upper-right toolbox menu to discover how Markdown works. 
+* `Alt-Q` reformats the current paragraph.
+
+Enjoy!
+
+[reference manual]: http://research.microsoft.com/en-us/um/people/daan/madoko/doc/reference.html  "Madoko refrence manual"
