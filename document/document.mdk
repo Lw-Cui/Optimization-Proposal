@@ -24,12 +24,14 @@ First, we generate a call graph by using **Google perfools**,
  square represents a function, and the bigger square is, the more time
  corresponding function cost.
  
-![origin]
 
-[origin]: images/origin.png "origin" { width:auto; max-width:90% }
+![100001994364201]
+
+[100001994364201]: images/100001994364201.jpg "100001994364201" { width:auto; max-width:90% }
 
 Obviously, the hot spot is something about **MKL**. After googling
 and searching Intel document we know that MKL provides BLAS routinues,
 which includes a serial funcition named "cblas_?gemm"
 to compute a matrix-matrix product with general matrices.
+
 

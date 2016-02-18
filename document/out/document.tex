@@ -40,10 +40,15 @@ configuration is as follows:%mdk
 \noindent\mdline{22}First, we generate a call graph by using \mdline{22}\textbf{Google perfools}\mdline{22},
  a open source performance profiler, to have a glance though it. Every
  square represents a function, and the bigger square is, the more time
- corresponding function cost.
-Obviously, the hot spot is something about \mdline{26}\textbf{MKL}\mdline{26}. After googling
+ corresponding function cost.%mdk
+
+%mdk-data-line={28}
+\mdline{28}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/100001994364201}{}\mdline{28}%mdk
+
+%mdk-data-line={32}
+\noindent\mdline{32}Obviously, the hot spot is something about \mdline{32}\textbf{MKL}\mdline{32}. After googling
 and searching Intel document we know that MKL provides BLAS routinues,
-which includes a serial funcition named \mdline{28}\textquotedblleft{}cblas\_?gemm\textquotedblright{}\mdline{28}
+which includes a serial funcition named \mdline{34}\textquotedblleft{}cblas\_?gemm\textquotedblright{}\mdline{34}
 to compute a matrix-matrix product with general matrices.%mdk%mdk
 
 
