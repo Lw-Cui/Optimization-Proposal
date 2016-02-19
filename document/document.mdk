@@ -1,8 +1,14 @@
-Title         : Optimization of the DNN program on the CPU+MIC Platform
+Title         : Optimization of a DNN program on the CPU+MIC
 Author        : University of Electronic Secience and Technology of China
 Logo          : False
 
+
 [TITLE]
+
+~ Abstract
+This article is a part of competition proposal of `ASC(Asia Supercomputer Student Challenge)`. We analysis the `DNN` program, put forward different optimization methods and point their pros and cons. In the end we talk about our shortcomings.
+~
+
 # Introduction
 In the section a program based on a standalone hybrid CPU+MIC platform called `DNN(deep neural network)` should be parallelized to obtain better performance. The detailed configuration about is as follows: 
 ~ Figure { #fig-myfigure; caption:"Hardware configuration"}
@@ -73,8 +79,24 @@ methods are considered and weighed their pros and cons.
 # Fine grain parallelism
 In fine grain parallelism a thorough check is necessary. It's better to look through the whole top-down tree rendered by `Intel VTune` and to find out performance-critical loop. Attention should be given to the `dnn*` function series.
 
-In function `dnnForward`, it's easy to observe there is a `for loop` calling `cblas_sgemm`, which nearly cost all CPU time consumed by this function. But there is some detail should be made before optimization.
+In function `dnnForward`, it's easy to observe there is a `for loop` calling `cblas_sgemm`, which nearly cost all CPU time consumed by this function. But there is some detail should be consider in before optimization.
 
+## Matrix size
+
+All `cblas_sgemm` is called like this:
+``` java
+  cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, numN, numA[i], numA[i-1], \
+  						one, d_Y[i-1], numA[i-1], d_W[i], numA[i], one, d_Y[i], numA[i]);
+```
+The arguments `numN`, `numA[i]`, `numA[i-1]` indicating the size of the matrices:
+
+ * `d_Y[i-1]` is a `numN` row by `numA[i]` column matrix;
+ * `d_W[i]` is a `numN` row by `numA[i-1]` column matrix;
+ * `d_Y[i]` is a `numA[i-1]` row by `numA[i]` column matrix.
+
+As we known the bigger matrix size is, the higher degree of `MKL` parallelism is. But in the `DNN` program 
+
+## Cycles index
 
 
 # Coarse grain parallelism
