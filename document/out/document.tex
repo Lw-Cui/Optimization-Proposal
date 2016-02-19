@@ -37,7 +37,7 @@ configuration is as follows:%mdk
 \section{\mdline{21}2.\hspace*{0.5em}\mdline{21}Analysis of the serial program}\label{sec-analysis-of-the-serial-program}%mdk%mdk
 
 %mdk-data-line={22}
-\noindent\mdline{22}First, we generate a call graph by using \mdline{22}\textbf{Google perfools}\mdline{22},
+\noindent\mdline{22}First, we generate a call graph by using \mdline{22}\mdcode{Google~perfools}\mdline{22},
  a open source performance profiler, to have a glance though it. Every
  square represents a function, and the bigger square is, the more time
  corresponding function cost.%mdk
@@ -46,10 +46,48 @@ configuration is as follows:%mdk
 \mdline{28}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/100001994364201}{}\mdline{28}%mdk
 
 %mdk-data-line={32}
-\noindent\mdline{32}Obviously, the hot spot is something about \mdline{32}\textbf{MKL}\mdline{32}. After googling
-and searching Intel document we know that MKL provides BLAS routinues,
-which includes a serial funcition named \mdline{34}\textquotedblleft{}cblas\_?gemm\textquotedblright{}\mdline{34}
-to compute a matrix-matrix product with general matrices.%mdk%mdk
+\noindent\mdline{32}Obviously, the hot spot is something about \mdline{32}\mdcode{MKL}\mdline{32}. After googling
+and searching Intel document we know that MKL provides \mdline{33}\mdcode{BLAS~routinues}\mdline{33},
+which includes a serial funcition named \mdline{34}\mdcode{cblas\_?gemm}\mdline{34}
+to compute a matrix-matrix product with general matrices.%mdk
+
+%mdk-data-line={37}
+\mdline{37}Then we search for \mdline{37}\mdcode{cblas\_*gemm}\mdline{37}, results show the usage of \mdline{37}\mdcode{cblas\_*gemm}\mdline{37}
+ appear in file \mdline{38}\mdcode{dnn\_func.cpp}\mdline{38}, more specifically, in three function:%mdk
+
+%mdk-data-line={40}
+\begin{itemize}[noitemsep,topsep=\mdcompacttopsep]%mdk
+
+%mdk-data-line={40}
+\item\mdline{40}\mdcode{\preindent{1}extern~"C"~int~dnnForward(NodeArg~\&nodeArg)}\mdline{40}%mdk
+
+%mdk-data-line={41}
+\item\mdline{41}\mdcode{\preindent{1}extern~"C"~int~dnnBackward(NodeArg~\&nodeArg)}\mdline{41}%mdk
+
+%mdk-data-line={42}
+\item\mdline{42}\mdcode{\preindent{1}extern~"C"~int~dnnUpdate(NodeArg~\&nodeArg)}\mdline{42}%mdk
+%mdk
+\end{itemize}%mdk
+
+%mdk-data-line={44}
+\noindent\mdline{44}So we guess that those function is what we should optimize, aka, hotspots.
+The report showed by\mdline{45}\mdcode{Intel~VTune}\mdline{45}, another profiler, proves our guess.%mdk
+
+%mdk-data-line={47}
+\mdline{47}After a skim through the source code, we have a a clear structure 
+about the program. To simplify our describe, original program 
+could be rewritten in pseudocode:%mdk
+\begin{mdpre}%mdk
+\noindent{\mdcolor{purple}1}.~{\mdcolor{teal}GetInitFileConfig}(cpuArg)\\
+{\mdcolor{purple}2}.~{\mdcolor{teal}While}~{\mdcolor{teal}FetchOneChunk}(cpuArg,~onChunk)~{\mdcolor{navy}do}:\\
+~~~~~~~~~{\mdcolor{teal}While}~{\mdcolor{teal}FetchOneBunch}(oneChunk,~nodeArg)~{\mdcolor{navy}do}:\\
+~~~~~~~~~~~~~~dnnForward(nodeArg)\\
+~~~~~~~~~~~~~~dnnBackward(nodeArg)\\
+~~~~~~~~~~~~~~dnnUpate(nodeArg)\\
+{\mdcolor{purple}3}.~{\mdcolor{teal}WriteWts}(nodeArg,~cpuArg)\\
+{\mdcolor{purple}4}.~{\mdcolor{teal}UninitProgramConfig}(cpuArg)\\
+%mdk
+\end{mdpre}\noindent\mdline{63}Then%mdk
 
 
 \end{document}
