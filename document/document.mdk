@@ -46,6 +46,10 @@ cost almost 90% of all runtime. So we guess that those function
  is what we should optimize, aka, hotspots.
 The report showed by`Intel VTune`, another profiler, proves our guess.
 
+![2016-02-19 10:36:25屏幕截图]
+
+[2016-02-19 10:36:25屏幕截图]: images/2016-02-19-10-36-25-.png "2016-02-19 10:36:25屏幕截图" { width:auto; max-width:90% }
+
 After a skim through the source code, a clear structure 
 about the program is establish in our heart. 
 To simplify our describe, original program could be rewritten 
