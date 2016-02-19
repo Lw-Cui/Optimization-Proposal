@@ -8,7 +8,6 @@ Logo          : False
 ~ Abstract
 This article is a part of competition proposal of `ASC(Asia Supercomputer Student Challenge)`. We analysis the `DNN` program, put forward different optimization methods and point their pros and cons. In the end we talk about our shortcomings.
 ~
-
 # Introduction
 In the section a program based on a standalone hybrid CPU+MIC platform called `DNN(deep neural network)` should be parallelized to obtain better performance. The detailed configuration about is as follows: 
 ~ Figure { #fig-myfigure; caption:"Hardware configuration"}
@@ -94,10 +93,17 @@ The arguments `numN`, `numA[i]`, `numA[i-1]` indicating the size of the matrices
  * `d_W[i]` is a `numN` row by `numA[i-1]` column matrix;
  * `d_Y[i]` is a `numA[i-1]` row by `numA[i]` column matrix.
 
-As we known the bigger matrix size is, the higher degree of `MKL` parallelism is. But in the `DNN` program 
+As we known the bigger matrix size is, the higher degree of `MKL` parallelism is. But in the `DNN` program, the size of matrix is decided by `bunchSize`, a constant integer, and `dnnLayerArr`, a constant integer array. The two integers are configured by specified file, and we are not allowed to modify it. For this reason there are no sufficiently large matrix to enable `auto offload model` to speed up `DNN`.[^fn-footnote]
+
 
 ## Cycles index
 
 
 # Coarse grain parallelism
 To implenment coarse grain parallelism we hope that each thread/process finish large subcomponents. To achieve this goal `DNN` program should be divided into (mostly) independent and similar proportions, and every proportion should be as large as possible.
+
+
+[^fn-footnote]: [Automatic Offload document]
+[Automatic Offload document]: https://software.intel.com/en-us/articles/recommendations-to-choose-the-right-mkl-usage-model-for-xeon-phi "intel MKL"
+
+
