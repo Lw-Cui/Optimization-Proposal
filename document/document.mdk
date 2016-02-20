@@ -94,11 +94,10 @@ The arguments `numN`, `numA[i]`, `numA[i-1]` indicating the size of the matrices
  * `d_W[i]` is a `numN` row by `numA[i-1]` column matrix;
  * `d_Y[i]` is a `numA[i-1]` row by `numA[i]` column matrix.
 
-As we known the bigger matrix size is, the higher degree of `MKL` parallelism is. But in the `DNN` program, the size of matrix is decided by `bunchSize`, a constant integer, and `dnnLayerArr`, a constant integer array. The two integers are configured by specified file, and we are not allowed to modify it. For this reason there are no sufficiently large matrix to enable `auto offload model` to speed up `DNN`.[@MKL-MIC]
-
+As we known the bigger matrix size is, the higher degree of `MKL` parallelism is. But in the `DNN` program, the size of matrix is decided by `bunchSize`, a constant integer (1024), and element (&asymp;1024) of `dnnLayerArr`, a constant integer array. The two integers are configured by specified file, and we are not allowed to modify it. For this reason there are no sufficiently large matrix to enable `auto offload model` to speed up `DNN`.[@MKL-MIC]
 
 ## Cycles index
-
+In the `dnn*` series every loop call `cblas_sgemm` `numN`(&asymp;7) times, which indicates the length of `dnnLayerArr`. It's regretful that the value cannot be modified by us. Giving the multi-core of cluster it's not wise to parallelize those loops.
 
 # Coarse grain parallelism
 To implenment coarse grain parallelism we hope that each thread/process finish large subcomponents. To achieve this goal `DNN` program should be divided into (mostly) independent and similar proportions, and every proportion should be as large as possible.
