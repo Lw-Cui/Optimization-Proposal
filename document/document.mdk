@@ -44,16 +44,17 @@ But giving that MKL function is well-optimized, we search for all position where
 * ` extern "C" int dnnForward(NodeArg &nodeArg)`
 * ` extern "C" int dnnBackward(NodeArg &nodeArg)`
 * ` extern "C" int dnnUpdate(NodeArg &nodeArg)`
+~ Figure { #fig-myfigure; caption:"Intel VTune top-down tree"}
+![2016-02-19 10:36:25屏幕截图]
+[2016-02-19 10:36:25屏幕截图]: images/2016-02-19-10-36-25-.png "2016-02-19 10:36:25屏幕截图" { width:auto; max-width:90% }
+~
 
 They call `MKL` function `cblas_sgemm` many times by `for loop` and 
 cost almost 90% of all CPU time. So we guess that those function
  is what we may optimize, aka, hotspots.
 The report(see Figure 4.) showed by`Intel VTune`, another profiler, proves our guess.
 
-~ Figure { #fig-myfigure; caption:"Intel VTune top-down tree"}
-![2016-02-19 10:36:25屏幕截图]
-[2016-02-19 10:36:25屏幕截图]: images/2016-02-19-10-36-25-.png "2016-02-19 10:36:25屏幕截图" { width:auto; max-width:90% }
-~
+
 
 According to a skim through the source code, we could establish a clear structure about this program. To simplify code, original program could be rewritten in pseudocode:
 ``` Java
