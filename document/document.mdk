@@ -7,7 +7,7 @@ Bibliography: reference.bib
 [TITLE]
 
 ~ Abstract
-This article is a part of competition proposal of Asia Supercomputer Student Challenge. We analysis the `DNN` program, put forward different optimization methods, test them and point their pros and cons. In the end we talk about our limits.
+This article is a part of competition proposal of Asia Supercomputer Student Challenge. We analysis the `DNN` program, put forward different optimization methods, test them and point their pros and cons. In the end we talk about our limitations.
 ~
 # Introduction
 There is a program based on a standalone hybrid CPU+MIC platform called `DNN(deep neural network)` needed to be parallelized for obtain better performance. Here is some detailed information about hardware in Figure 1, software configuration in Figure 2.
@@ -98,7 +98,13 @@ In the `dnn*` series every loop call `cblas_sgemm` `numN`(&asymp;7) times, which
 
 ## Fine grain parallelism
 
-In function `dnnForward`, it's easy to observe there is a `for loop` calling `cblas_sgemm`, which nearly cost all CPU time consumed by this function.
+In function `dnnForward`, it's easy to observe there is a `for loop` calling `cblas_sgemm`, which nearly cost all CPU time consumed by this function. So it's same with the `dnnBackward` and `dnnUpdate`. A rough thoughts occurred to us that we could parallelize this `for loop` using multi-threads. Without data dependency in `for loop` it's easy to implement it. We hope to generalize the parallelization region to larger scale, but considering the structure of `DNN` the default ordering of `dnn*` series couldn't be changed, neither does the processing of file-reading.
+
+~ Figure { #fig-figure; caption:"`DNN` structure"}
+![2016-02-21 21:15:24屏幕截图]
+
+[2016-02-21 21:15:24屏幕截图]: images/2016-02-21-21-15-24-.png "2016-02-21 21:15:24屏幕截图" { width:auto; max-width:90% }
+~
 
 
 ## Coarse grain parallelism
@@ -107,11 +113,19 @@ To implenment coarse grain parallelism we hope that each thread/process finish l
 # Performance optimization methods
 
 ## Serial `MKL` function with `OpenMP`
-`MKL` function could decide whether to be threaded after a runtime check[@paraMKL]. To maximize the degree of parallelisation we use 
-as mentioned above, there isn't large enough cycles index to improve performance.
+`MKL` function could decide whether to be threaded after a runtime check[@paraMKL]. To maximize the utilization it's better to execute multithreading application in `MIC`, but as we mentioned above there isn't large enough cycles index to improve performance.
 
-## `MPI` method
+## Compiler assisted offload
+
+To make the `DNN` program scalable we use `offload if` the decide whether to run in the `MIC` or not. After testing a 2048 * 2048 matrix or bigger is suitable to transmit to `MIC` for better performance.
+
+## Environmental variables settings
+* `MKL_DYNAMIC=FALSE`
+* `MKL_NUM_THREADS=50`
+* `MIC_USE_2MB_BUFFERS=100M`
+* `MKL_MIC_ENABLE=FALSE`
 
 # Testing process and results on the CPU+MIC platform
+# Limitation
 
 [BIB]

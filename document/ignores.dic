@@ -10,3 +10,4 @@ configurationfile
 OpenMP
 ASC
 parallelisation
+multithreading
