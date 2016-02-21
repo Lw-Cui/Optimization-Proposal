@@ -116,14 +116,19 @@ To implenment coarse grain parallelism we hope that each thread/process finish l
 `MKL` function could decide whether to be threaded after a runtime check[@paraMKL]. To maximize the utilization it's better to execute multithreading application in `MIC`, but as we mentioned above there isn't large enough cycles index to improve performance.
 
 ## Compiler assisted offload
-
 To make the `DNN` program scalable we use `offload if` the decide whether to run in the `MIC` or not. After testing a 2048 * 2048 matrix or bigger is suitable to transmit to `MIC` for better performance.
 
 ## Environmental variables settings
-* `MKL_DYNAMIC=FALSE`
-* `MKL_NUM_THREADS=50`
+* `MKL_DYNAMIC=true`:  
+This option may reduce possible oversubscription from MKL threading. This option leads to a dynamic reduction of number of OpenMP* threads based on analysis of system workload.
+
+* `MKL_NUM_THREADS=224`:  
+`MKL` is designed for high degree parallelization code, so we set the variables to enable `MKL` threads.[@MKL_threads] It's necessary because we choose sequential `for loop` to call `MKL` function.
+
 * `MIC_USE_2MB_BUFFERS=100M`
-* `MKL_MIC_ENABLE=FALSE`
+* `MKL_MIC_ENABLE=FALSE`:  
+2MB pages are also needed. the 2MB pages in compiler-assisted offload are used to improve data transfer performance[@page_file], and they could be enabled using the `MIC_USE_2MB_BUFFERS` variable.
+
 
 # Testing process and results on the CPU+MIC platform
 # Limitation
