@@ -135,11 +135,15 @@ To implenment coarse grain parallelism we hope that each thread/process finish l
 
 # Performance optimization methods
 
-## Serial `MKL` function with `OpenMP`
-`MKL` function could decide whether to be threaded after a runtime check[@paraMKL]. To maximize the utilization it's better to execute multithreading application in `MIC`, but as we mentioned above there isn't large enough cycles index to improve performance.
-
 ## Compiler assisted offload
 
+### Dimensionality reduction
+### Data persistence
+
+## `OpenMP` optimization
+To maximize the utilization it's better to execute multithreading application in `MIC`.[@effective_use]
+
+## Alignment
 
 ## Environmental variables settings
 * `MKL_DYNAMIC=true`:  
@@ -147,14 +151,12 @@ This option may reduce possible oversubscription from MKL threading. It leads to
 
 * `MKL_NUM_THREADS=50`  
  `export OMP_NUM_THREADS=50`:  
-`MKL` function could decide whether to be threaded after a runtime check. [@paraMKL] It's necessary because we choose sequential `for loop` to call `MKL` function.
+`MKL` function could decide whether to be threaded after a runtime check. [@paraMKL; @MKL_threads] Those variables are maximum threads we allow to create. 
 
-* `MIC_USE_2MB_BUFFERS=100M`
-* `MKL_MIC_ENABLE=FALSE`:  
+* `MIC_USE_2MB_BUFFERS=100M`  
 2MB pages are also needed. the 2MB pages in compiler-assisted offload are used to improve data transfer performance[@page_file], and they could be enabled using the `MIC_USE_2MB_BUFFERS` variable.
 
-
 # Testing process and results on the CPU+MIC platform
-# Limitation
+
 
 [BIB]
