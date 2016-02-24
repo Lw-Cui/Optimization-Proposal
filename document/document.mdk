@@ -135,28 +135,26 @@ To implenment coarse grain parallelism we hope that each thread/process finish l
 
 # Performance optimization methods
 
-## `OpenMP`
-[@paraMKL]. To maximize the utilization it's better to execute multithreading application in `MIC`, but as we mentioned above there isn't large enough cycles index to improve performance.
+## Serial `MKL` function with `OpenMP`
+`MKL` function could decide whether to be threaded after a runtime check[@paraMKL]. To maximize the utilization it's better to execute multithreading application in `MIC`, but as we mentioned above there isn't large enough cycles index to improve performance.
 
 ## Compiler assisted offload
 
 
 ## Environmental variables settings
 * `MKL_DYNAMIC=true`:  
-This option may reduce possible oversubscription from MKL threading. It leads to a dynamic reduction of number of OpenMP* threads based on analysis of system workload. [@paraMKL]
+This option may reduce possible oversubscription from MKL threading. It leads to a dynamic reduction of number of OpenMP* threads based on analysis of system workload.
 
 * `MKL_NUM_THREADS=50`  
  `export OMP_NUM_THREADS=50`:  
-MKL` function could decide whether to be threaded after a runtime check. [@MKL_threads]  It's necessary because we choose sequential `for loop` to call `MKL` function.
+`MKL` function could decide whether to be threaded after a runtime check. [@paraMKL] It's necessary because we choose sequential `for loop` to call `MKL` function.
 
-* `MIC_USE_2MB_BUFFERS=64K`  
-  `MKL_MIC_ENABLE=FALSE`:  
+* `MIC_USE_2MB_BUFFERS=100M`
+* `MKL_MIC_ENABLE=FALSE`:  
 2MB pages are also needed. the 2MB pages in compiler-assisted offload are used to improve data transfer performance[@page_file], and they could be enabled using the `MIC_USE_2MB_BUFFERS` variable.
-* `export MIC_KMP_AFFINITY=balanced`
-* `export OFFLOAD_INIT=on_start`  
-Initialization consists of loading the MIC program on to each device, setting up a data transfer pipeline between CPU and the device and creating a MIC thread to handle offload requests from the CPU thread. Set `on_start` to reduce this consume.[@effective_use]
 
 
-# Testing process and results on the CPU + MIC platform
+# Testing process and results on the CPU+MIC platform
+# Limitation
 
 [BIB]
