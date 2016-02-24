@@ -81,7 +81,8 @@ All `cblas_sgemm` is called like this:
 ``` java
   cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,\
         numN, numA[i], numA[i-1], \
-        one, d_Y[i-1], numA[i-1], d_W[i], numA[i], one, d_Y[i], numA[i]);
+        one, d_Y[i-1], numA[i-1], d_W[i], numA[i],
+        one, d_Y[i], numA[i]);
 ```
 The arguments `numN`, `numA[i]`, `numA[i-1]` indicating the size of the matrices:
 
@@ -98,7 +99,29 @@ In the `dnn*` series every loop call `cblas_sgemm` `numN`(&asymp;7) times, which
 
 ## Fine grain parallelism
 
-In function `dnnForward`, it's easy to observe there is a `for loop` calling `cblas_sgemm`, which nearly cost all CPU time consumed by this function. So it's same with the `dnnBackward` and `dnnUpdate`. A rough thoughts occurred to us that we could parallelize this `for loop` using multi-threads. Without data dependency in `for loop` it's easy to implement it. We hope to generalize the parallelization region to larger scale, but considering the structure of `DNN` the default ordering of `dnn*` series couldn't be changed, neither does the processing of file-reading.
+In function `dnnForward`, it's easy to observe there is a loop invoking `cblas_sgemm`, which nearly cost all CPU time consumed by this function. So it's same with the `dnnBackward` and `dnnUpdate`. A rough thoughts occurred to us that we could parallelize this `for loop` using multi-threads. But data dependency in `for loop` and relatively small cycle index make it inefficient to parallelize. So   we should consider generalizing the parallelization region to smaller scale. Taking the feature of `MIC` in to account we hope to execute highly parallel code and/or compute intensive code in the `MIC`. Focusing on `dnn*` series it's easy to find an abstract structure to generalize them:
+```java
+  extern "C" int dnn***(NodeArg &nodeArg)
+{
+    /* Variables definition */
+    float  *d_X = nodeArg.d_X;
+	  ...
+    /* Preprcess function func1 */
+    func1(...);
+
+   /* a for loop where a function, a MKL \
+   and another function are invoked oderly */
+   for (int i = num; ...) {
+        func2(...);
+        cblas_sgemm(CblasRowMajor, CblasNoTrans, ...);
+        func3(...);
+        }
+    } 
+    return 0;
+}
+
+``` 
+Arguments of `func1`, `func2`, `func3` is matrix or vector, which is easy to parallelized. Taking all factors into consider, we have two choose: a) use serial `MKL` then parallelize the whole `for loop`, b) use multi-thread `MKL` and parallelize `func1, 2, 3`. The two measures all support `MIC`, but we prefer the b) because we could benefit from the parallel optimization of `MKL` and cooperation among `MKL` and `MIC`.
 
 ~ Figure { #fig-figure; caption:"`DNN` structure"}
 ![2016-02-21 21:15:24屏幕截图]
@@ -108,7 +131,7 @@ In function `dnnForward`, it's easy to observe there is a `for loop` calling `cb
 
 
 ## Coarse grain parallelism
-To implenment coarse grain parallelism we hope that each thread/process finish large subcomponents. To achieve this goal `DNN` program should be divided into (mostly) independent and similar proportions, and every proportion should be as large as possible.
+To implenment coarse grain parallelism we hope that each thread/process finish large subcomponents. To achieve this goal `DNN` program should be divided into (mostly) independent and similar proportions, and every proportion should be as large as possible. But considering the structure of `DNN` the default ordering of `dnn*` series couldn't be changed, neither does the processing of file-reading. So in our opinion it's difficult to implement coarse grain parallelism without any change to `DNN` structure and its dataset.
 
 # Performance optimization methods
 
