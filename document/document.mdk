@@ -1,4 +1,4 @@
-Title         : Optimization of a DNN program on the CPU+MIC
+Title         : Optimization of a DNN Program on the CPU+MIC Platform
 Author        : University of Electronic Secience and Technology of China
 Logo          : False
 Bibliography: reference.bib
@@ -26,8 +26,8 @@ After optimization, the final program is tested on one computing server in the C
 [2016-02-18 23:13:11屏幕截图]: images/2016-02-18-23-13-11-.png "2016-02-18 23:13:11屏幕截图" { width:auto; max-width:90% }
 ~
 
-# Analysis of the serial program
-## Coarse grain analysis
+# Analysis of the Serial Program
+## Coarse Grain Analysis
 At first, we generate a call graph(Figure 3) by using `Google perfools`, a open source performance profiler, to have a glance though it. Every square represents a function, and the bigger square is, the more time corresponding function cost.
  
 ~ Figure { #fig-myfigure; caption:"Google Perfools results"}
@@ -73,9 +73,9 @@ in each of those processing function many matrix-matrix product are
 executed. Whether those hotspots could be parallelized or not depends
 on data scale, dependency and so on. Before we discuss some methods and weighed their pros and cons the implementation of `DNN` should be most carefully checked.
 
-## Fine grain analysis
+## Fine Grain Analysis
 
-### Matrix size
+### Matrix Size
 
 All `cblas_sgemm` is called like this:
 ``` java
@@ -92,12 +92,12 @@ The arguments `numN`, `numA[i]`, `numA[i-1]` indicating the size of the matrices
 
 As we known the bigger matrix size is, the higher degree of `MKL` parallelism is. But in the `DNN` program, the size of matrix is decided by `bunchSize`, a constant integer (&asymp;1024), and element (&asymp;1024) of `dnnLayerArr`, a constant integer array. The two integers are configured by specified file, and we are not allowed to modify it. For this reason there are no sufficiently large matrix to enable `auto offload model` to speed up `DNN`.[@MKL-MIC]
 
-### Cycles index
+### Cycles Index
 In the `dnn*` series every loop call `cblas_sgemm` `numN`(&asymp;7) times, which indicates the length of `dnnLayerArr`. It's regretful that the value cannot be modified by us. Giving the number of core(&asymp;24 in CPU or &asymp;60 in MIC) and constant `numN`, it's not wise to parallelize those loops.
 
-# Parallelization design methods
+# Parallelization Design Methods
 
-## Fine grain parallelism
+## Fine Grain Parallelism
 
 In function `dnnForward`, it's easy to observe there is a loop invoking `cblas_sgemm`, which nearly cost all CPU time consumed by this function. So it's same with the `dnnBackward` and `dnnUpdate`. A rough thoughts occurred to us that we could parallelize this `for loop` using multi-threads. But data dependency in `for loop` and relatively small cycle index make it inefficient to parallelize. So   we should consider generalizing the parallelization region to smaller scale. Taking the feature of `MIC` in to account we hope to execute highly parallel code and/or compute intensive code in the `MIC`. Focusing on `dnn*` series it's easy to find an abstract structure to generalize them:
 ```java
@@ -130,33 +130,65 @@ Arguments of `func1`, `func2`, `func3` is matrix or vector, which is easy to par
 ~
 
 
-## Coarse grain parallelism
+## Coarse Grain Parallelism
 To implenment coarse grain parallelism we hope that each thread/process finish large subcomponents. To achieve this goal `DNN` program should be divided into (mostly) independent and similar proportions, and every proportion should be as large as possible. But considering the structure of `DNN` the default ordering of `dnn*` series couldn't be changed, neither does the processing of file-reading. So in our opinion it's difficult to implement coarse grain parallelism without any change to `DNN` structure and its dataset.
 
-# Performance optimization methods
+# Performance Optimization Methods
 
-## Compiler assisted offload
+## Compiler Assisted Offload
 
-### Dimensionality reduction
-### Data persistence
+### Scope of Offloaded Sections
+We have talked about the common structure of `DNN` series. In their `for` loop there are serial processing and `MKL` function appear alternately, and serial processing modifies data which is used as input in next `cblas_sgemm`function. Data change between `MIC` and `CPU` is slow because of `PCI-E` speeds so the best known methods[@effective_use] is to make the whole section of code an offload unit, which could reduce most of data transfer. In addition, because we nearly make the three `dnn` functions offload units, data transfer between them is less. SO, all we need do is to transfer input data in the start of `for loop` from `CPU` to `MIC` and transfer output after loop to `CPU`.
 
-## `OpenMP` optimization
+### Dimensionality Reduction
+As we know, `MIC` disallow specifying array of pointer, aka. multi-dimension array, to be use in `in` or `out` clauses. To cap it all the arrays used in `DNN` aren't stored consecutively in memory. 
+
+`dnn` Function is like this:
+```java
+  extern "C" int dnn***(NodeArg &nodeArg)
+{
+    /* Variables definition */
+    float  *d_X = nodeArg.d_X;
+	  ...
+    
+    #pragma offload target(mic)\
+    in(pd_Y:length(0) REUSE)\
+    in(pd_W:length(0) REUSE)\
+    ...
+    {
+      /* Preprcess function func1 */
+      func1(...);
+
+      /* a for loop where a function, a MKL \
+      and another function are invoked oderly */
+
+      for (int i = num; ...) {
+          func2(...);
+          cblas_sgemm(CblasRowMajor, CblasNoTrans, ...);
+          func3(...);
+      }
+    } 
+    return 0;
+}
+
+```
+
+## `OpenMP` Optimization
 To maximize the utilization it's better to execute multithreading application in `MIC`.[@effective_use]
 
 ## Alignment
 
-## Environmental variables settings
-* `MKL_DYNAMIC=true`:  
+## Environmental Variables Settings
+### `MKL_DYNAMIC=true`:  
 This option may reduce possible oversubscription from MKL threading. It leads to a dynamic reduction of number of OpenMP* threads based on analysis of system workload.
 
-* `MKL_NUM_THREADS=50`  
- `export OMP_NUM_THREADS=50`:  
+### `MKL_NUM_THREADS=50 OMP_NUM_THREADS=50`:  
 `MKL` function could decide whether to be threaded after a runtime check. [@paraMKL; @MKL_threads] Those variables are maximum threads we allow to create. 
 
-* `MIC_USE_2MB_BUFFERS=100M`  
+### `MIC_USE_2MB_BUFFERS=100M`  
 2MB pages are also needed. the 2MB pages in compiler-assisted offload are used to improve data transfer performance[@page_file], and they could be enabled using the `MIC_USE_2MB_BUFFERS` variable.
 
-# Testing process and results on the CPU+MIC platform
+# Testing Process and Results on the CPU+MIC Platform
 
 
 [BIB]
