@@ -1,14 +1,20 @@
 Title         : Optimization of a DNN Program on the CPU+MIC Platform
-Author        : University of Electronic Secience and Technology of China
 Logo          : False
 Bibliography: reference.bib
-
+Author      : Liwei Cui
+Affiliation : University of Electronic Secience and Technology of China
+Email       : 2014060101003@std.uestc.edu.cn
+Title Note  : &date;
+Sub Title   : Competition proposal of ASC
 
 [TITLE]
 
 ~ Abstract
 This article is a part of competition proposal of Asia Supercomputer Student Challenge. We analysis the `DNN` program, put forward different optimization methods, test them and point their pros and cons. In the end we talk about our limitations.
 ~
+
+[TOC]
+
 # Introduction
 There is a program based on a standalone hybrid CPU+MIC platform called `DNN(deep neural network)` needed to be parallelized for obtain better performance. Here is some detailed information about hardware in Figure 1, software configuration in Figure 2.
 

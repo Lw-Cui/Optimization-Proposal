@@ -10,124 +10,212 @@
 
 
 
-%mdk-data-line={7}
-\mdxtitleblockstart{}
-%mdk-data-line={7}
-\mdxtitle{\mdline{7}Optimization of a DNN Program on the CPU+MIC Platform}%mdk
-\mdxauthorstart{}
-%mdk-data-line={12}
-\mdxauthorname{\mdline{12}University of Electronic Secience and Technology of China}%mdk
-\mdxauthorend\mdtitleauthorrunning{}{}\mdxtitleblockend%mdk
-
-%mdk-data-line={9}
-\begin{abstract}%mdk
-
 %mdk-data-line={10}
-\noindent\mdline{10}This article is a part of competition proposal of Asia Supercomputer Student Challenge. We analysis the \mdline{10}\mdcode{DNN}\mdline{10} program, put forward different optimization methods, test them and point their pros and cons. In the end we talk about our limitations.%mdk
-%mdk
-\end{abstract}%mdk
-
-%mdk-data-line={12}
-\section{\mdline{12}1.\hspace*{0.5em}\mdline{12}Introduction}\label{sec-introduction}%mdk%mdk
+\mdxtitleblockstart{}
+%mdk-data-line={10}
+\mdxtitle{\mdline{10}Optimization of a DNN Program on the CPU+MIC Platform}%mdk
 
 %mdk-data-line={13}
-\noindent\mdline{13}There is a program based on a standalone hybrid CPU+MIC platform called \mdline{13}\mdcode{DNN(deep~neural~network)}\mdline{13} needed to be parallelized for obtain better performance. Here is some detailed information about hardware in Figure 1, software configuration in Figure 2.%mdk
-
-%mdk-data-line={15}
-\mdline{15}After optimization, the final program is tested on one computing server on the CPU+MIC hybrid cluster. Performance analysis in this proposal is based on the results of this test.%mdk
+\mdxsubtitle{\mdline{13}Competition proposal of ASC}%mdk
 
 %mdk-data-line={16}
-\begin{figure}[tbp]%mdk
-\begin{mdcenter}%mdk
+\mdxtitlenote{\mdline{16}2016-02-25}%mdk
+\mdxauthorstart{}
+%mdk-data-line={21}
+\mdxauthorname{\mdline{21}Liwei Cui}%mdk
+
+%mdk-data-line={24}
+\mdxauthoraddress{\mdline{24}University of Electronic Secience and Technology of China}%mdk
+
+%mdk-data-line={27}
+\mdxauthoremail{\mdline{27}2014060101003@std.uestc.edu.cn}%mdk
+\mdxauthorend\mdtitleauthorrunning{}{}\mdxtitleblockend%mdk
+
+%mdk-data-line={12}
+\begin{abstract}%mdk
+
+%mdk-data-line={13}
+\noindent\mdline{13}This article is a part of competition proposal of Asia Supercomputer Student Challenge. We analysis the \mdline{13}\mdcode{DNN}\mdline{13} program, put forward different optimization methods, test them and point their pros and cons. In the end we talk about our limitations.%mdk
+%mdk
+\end{abstract}%mdk
+\mdline{16}
+\begin{mdtoc}%mdk
+
+\section*{Contents}\label{sec-contents}%mdk%mdk
+
+\begin{mdtocblock}%mdk
+
+\mdtocitemx{sec-introduction}{\mdref{sec-introduction}{1.\hspace*{0.5em}Introduction}}%mdk
+
+\mdtocitemx{sec-analysis-of-the-serial-program}{\mdref{sec-analysis-of-the-serial-program}{2.\hspace*{0.5em}Analysis of the Serial Program}}%mdk
+
+\begin{mdtocblock}%mdk
+
+\mdtocitemx{sec-coarse-grain-analysis}{\mdref{sec-coarse-grain-analysis}{2.1.\hspace*{0.5em}Coarse Grain Analysis}}%mdk
+
+\mdtocitemx{sec-fine-grain-analysis}{\mdref{sec-fine-grain-analysis}{2.2.\hspace*{0.5em}Fine Grain Analysis}}%mdk
+
+\begin{mdtocblock}%mdk
+
+\mdtocitemx{sec-matrix-size}{\mdref{sec-matrix-size}{2.2.1.\hspace*{0.5em}Matrix Size}}%mdk
+
+\mdtocitemx{sec-cycles-index}{\mdref{sec-cycles-index}{2.2.2.\hspace*{0.5em}Cycles Index}}%mdk
+%mdk
+\end{mdtocblock}%mdk
+%mdk
+\end{mdtocblock}%mdk
+
+\mdtocitemx{sec-parallelization-design-methods}{\mdref{sec-parallelization-design-methods}{3.\hspace*{0.5em}Parallelization Design Methods}}%mdk
+
+\begin{mdtocblock}%mdk
+
+\mdtocitemx{sec-fine-grain-parallelism}{\mdref{sec-fine-grain-parallelism}{3.1.\hspace*{0.5em}Fine Grain Parallelism}}%mdk
+
+\mdtocitemx{sec-coarse-grain-parallelism}{\mdref{sec-coarse-grain-parallelism}{3.2.\hspace*{0.5em}Coarse Grain Parallelism}}%mdk
+%mdk
+\end{mdtocblock}%mdk
+
+\mdtocitemx{sec-performance-optimization-methods}{\mdref{sec-performance-optimization-methods}{4.\hspace*{0.5em}Performance Optimization Methods}}%mdk
+
+\begin{mdtocblock}%mdk
+
+\mdtocitemx{sec-compiler-assisted-offload}{\mdref{sec-compiler-assisted-offload}{4.1.\hspace*{0.5em}Compiler Assisted Offload}}%mdk
+
+\begin{mdtocblock}%mdk
+
+\mdtocitemx{sec-scope-of-offloaded-sections}{\mdref{sec-scope-of-offloaded-sections}{4.1.1.\hspace*{0.5em}Scope of Offloaded Sections}}%mdk
+
+\mdtocitemx{sec-dimensionality-reduction}{\mdref{sec-dimensionality-reduction}{4.1.2.\hspace*{0.5em}Dimensionality Reduction}}%mdk
+%mdk
+\end{mdtocblock}%mdk
+
+\mdtocitemx{sec-openmp-optimization}{\mdref{sec-openmp-optimization}{4.2.\hspace*{0.5em}\mdcode{OpenMP} Optimization}}%mdk
+
+\mdtocitemx{sec-alignment}{\mdref{sec-alignment}{4.3.\hspace*{0.5em}Alignment}}%mdk
+
+\mdtocitemx{sec-environmental-variables-settings}{\mdref{sec-environmental-variables-settings}{4.4.\hspace*{0.5em}Environmental Variables Settings}}%mdk
+
+\begin{mdtocblock}%mdk
+
+\mdtocitemx{sec-mkl_dynamictrue-}{\mdref{sec-mkl_dynamictrue-}{4.4.1.\hspace*{0.5em}\mdcode{MKL\_DYNAMIC=true}:}}%mdk
+
+\mdtocitemx{sec-mkl_num_threads57-omp_num_threads57-}{\mdref{sec-mkl_num_threads57-omp_num_threads57-}{4.4.2.\hspace*{0.5em}\mdcode{MKL\_NUM\_THREADS=57~OMP\_NUM\_THREADS=57}:}}%mdk
+
+\mdtocitemx{sec-mic_use_2mb_buffers64k}{\mdref{sec-mic_use_2mb_buffers64k}{4.4.3.\hspace*{0.5em}\mdcode{MIC\_USE\_2MB\_BUFFERS=64K}}}%mdk
+%mdk
+\end{mdtocblock}%mdk
+%mdk
+\end{mdtocblock}%mdk
+
+\mdtocitemx{sec-testing-process-and-results-on-the-cpumic-platform}{\mdref{sec-testing-process-and-results-on-the-cpumic-platform}{5.\hspace*{0.5em}Testing Process and Results on the CPU+MIC Platform}}%mdk
+
+\mdtocitemx{sec-bibliography}{\mdref{sec-bibliography}{References}}%mdk
+%mdk
+\end{mdtocblock}%mdk
+%mdk
+\end{mdtoc}%mdk
 
 %mdk-data-line={18}
-\noindent\mdline{18}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/2016-02-18-23-01-13-}{}\mdline{18}%mdk
+\section{\mdline{18}1.\hspace*{0.5em}\mdline{18}Introduction}\label{sec-introduction}%mdk%mdk
+
+%mdk-data-line={19}
+\noindent\mdline{19}There is a program based on a standalone hybrid CPU+MIC platform called \mdline{19}\mdcode{DNN(deep~neural~network)}\mdline{19} needed to be parallelized for obtain better performance. Here is some detailed information about hardware in Figure 1, software configuration in Figure 2.%mdk
 
 %mdk-data-line={21}
-\mdhr{}%mdk
+\mdline{21}After optimization, the final program is tested on one computing server on the CPU+MIC hybrid cluster. Performance analysis in this proposal is based on the results of this test.%mdk
 
 %mdk-data-line={22}
-\noindent\mdline{22}\mdcaption{\textbf{Figure~\mdcaptionlabel{1}.}~\mdcaptiontext{Hardware configuration}}%mdk
-%mdk
-\end{mdcenter}\label{fig-myfigure}%mdk
-%mdk
-\end{figure}%mdk
-
-%mdk-data-line={23}
 \begin{figure}[tbp]%mdk
 \begin{mdcenter}%mdk
 
 %mdk-data-line={24}
-\noindent\mdline{24}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/2016-02-18-23-13-11-}{}\mdline{24}%mdk
+\noindent\mdline{24}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/2016-02-18-23-01-13-}{}\mdline{24}%mdk
 
 %mdk-data-line={27}
 \mdhr{}%mdk
 
 %mdk-data-line={28}
-\noindent\mdline{28}\mdcaption{\textbf{Figure~\mdcaptionlabel{2}.}~\mdcaptiontext{Software configuration}}%mdk
+\noindent\mdline{28}\mdcaption{\textbf{Figure~\mdcaptionlabel{1}.}~\mdcaptiontext{Hardware configuration}}%mdk
 %mdk
 \end{mdcenter}\label{fig-myfigure}%mdk
 %mdk
 \end{figure}%mdk
 
 %mdk-data-line={29}
-\section{\mdline{29}2.\hspace*{0.5em}\mdline{29}Analysis of the Serial Program}\label{sec-analysis-of-the-serial-program}%mdk%mdk
-
-%mdk-data-line={30}
-\subsection{\mdline{30}2.1.\hspace*{0.5em}\mdline{30}Coarse Grain Analysis}\label{sec-coarse-grain-analysis}%mdk%mdk
-
-%mdk-data-line={31}
-\noindent\mdline{31}At first, we generate a call graph(Figure 3) by using \mdline{31}\mdcode{Google~perfools}\mdline{31}, a open source performance profiler, to have a glance though it. Every square represents a function, and the bigger square is, the more time corresponding function cost.%mdk
-
-%mdk-data-line={33}
 \begin{figure}[tbp]%mdk
 \begin{mdcenter}%mdk
 
-%mdk-data-line={34}
-\noindent\mdline{34}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/100001994364201}{}\mdline{34}%mdk
+%mdk-data-line={30}
+\noindent\mdline{30}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/2016-02-18-23-13-11-}{}\mdline{30}%mdk
 
-%mdk-data-line={37}
+%mdk-data-line={33}
 \mdhr{}%mdk
 
-%mdk-data-line={38}
-\noindent\mdline{38}\mdcaption{\textbf{Figure~\mdcaptionlabel{3}.}~\mdcaptiontext{Google Perfools results}}%mdk
+%mdk-data-line={34}
+\noindent\mdline{34}\mdcaption{\textbf{Figure~\mdcaptionlabel{2}.}~\mdcaptiontext{Software configuration}}%mdk
 %mdk
 \end{mdcenter}\label{fig-myfigure}%mdk
 %mdk
 \end{figure}%mdk
 
-%mdk-data-line={38}
-\mdline{38}Obviously, the hot spot is something about \mdline{38}\mdcode{MKL}\mdline{38}. After googling
-and searching Intel document we know that MKL provides \mdline{39}\mdcode{BLAS~routinues}\mdline{39}, which includes a serial function named \mdline{39}\mdcode{cblas\_?gemm}\mdline{39}
-to compute a matrix-matrix product with general matrices.%mdk
+%mdk-data-line={35}
+\section{\mdline{35}2.\hspace*{0.5em}\mdline{35}Analysis of the Serial Program}\label{sec-analysis-of-the-serial-program}%mdk%mdk
 
-%mdk-data-line={42}
-\mdline{42}But giving that MKL function is well-optimized, we search for all position where \mdline{42}\mdcode{cblas\_*gemm}\mdline{42} is called. Results show the usage of \mdline{42}\mdcode{cblas\_*gemm}\mdline{42} appear in file \mdline{42}\mdcode{dnn\_func.cpp}\mdline{42}, more specifically, in three functions:%mdk
+%mdk-data-line={36}
+\subsection{\mdline{36}2.1.\hspace*{0.5em}\mdline{36}Coarse Grain Analysis}\label{sec-coarse-grain-analysis}%mdk%mdk
 
-%mdk-data-line={44}
-\begin{itemize}[noitemsep,topsep=\mdcompacttopsep]%mdk
+%mdk-data-line={37}
+\noindent\mdline{37}At first, we generate a call graph(Figure 3) by using \mdline{37}\mdcode{Google~perfools}\mdline{37}, a open source performance profiler, to have a glance though it. Every square represents a function, and the bigger square is, the more time corresponding function cost.%mdk
 
-%mdk-data-line={44}
-\item\mdline{44}\mdcode{\preindent{1}extern~"C"~int~dnnForward(NodeArg~\&nodeArg)}\mdline{44}%mdk
-
-%mdk-data-line={45}
-\item\mdline{45}\mdcode{\preindent{1}extern~"C"~int~dnnBackward(NodeArg~\&nodeArg)}\mdline{45}%mdk
-
-%mdk-data-line={46}
-\item\mdline{46}\mdcode{\preindent{1}extern~"C"~int~dnnUpdate(NodeArg~\&nodeArg)}\mdline{46}
-
-%mdk-data-line={47}
+%mdk-data-line={39}
 \begin{figure}[tbp]%mdk
 \begin{mdcenter}%mdk
 
-%mdk-data-line={48}
-\noindent\mdline{48}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/2016-02-19-10-36-25-}{}\mdline{48}%mdk
+%mdk-data-line={40}
+\noindent\mdline{40}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/100001994364201}{}\mdline{40}%mdk
 
-%mdk-data-line={50}
+%mdk-data-line={43}
 \mdhr{}%mdk
 
+%mdk-data-line={44}
+\noindent\mdline{44}\mdcaption{\textbf{Figure~\mdcaptionlabel{3}.}~\mdcaptiontext{Google Perfools results}}%mdk
+%mdk
+\end{mdcenter}\label{fig-myfigure}%mdk
+%mdk
+\end{figure}%mdk
+
+%mdk-data-line={44}
+\mdline{44}Obviously, the hot spot is something about \mdline{44}\mdcode{MKL}\mdline{44}. After googling
+and searching Intel document we know that MKL provides \mdline{45}\mdcode{BLAS~routinues}\mdline{45}, which includes a serial function named \mdline{45}\mdcode{cblas\_?gemm}\mdline{45}
+to compute a matrix-matrix product with general matrices.%mdk
+
+%mdk-data-line={48}
+\mdline{48}But giving that MKL function is well-optimized, we search for all position where \mdline{48}\mdcode{cblas\_*gemm}\mdline{48} is called. Results show the usage of \mdline{48}\mdcode{cblas\_*gemm}\mdline{48} appear in file \mdline{48}\mdcode{dnn\_func.cpp}\mdline{48}, more specifically, in three functions:%mdk
+
+%mdk-data-line={50}
+\begin{itemize}[noitemsep,topsep=\mdcompacttopsep]%mdk
+
+%mdk-data-line={50}
+\item\mdline{50}\mdcode{\preindent{1}extern~"C"~int~dnnForward(NodeArg~\&nodeArg)}\mdline{50}%mdk
+
 %mdk-data-line={51}
-\noindent\mdline{51}\mdcaption{\textbf{Figure~\mdcaptionlabel{4}.}~\mdcaptiontext{Intel VTune top-down tree}}%mdk
+\item\mdline{51}\mdcode{\preindent{1}extern~"C"~int~dnnBackward(NodeArg~\&nodeArg)}\mdline{51}%mdk
+
+%mdk-data-line={52}
+\item\mdline{52}\mdcode{\preindent{1}extern~"C"~int~dnnUpdate(NodeArg~\&nodeArg)}\mdline{52}
+
+%mdk-data-line={53}
+\begin{figure}[tbp]%mdk
+\begin{mdcenter}%mdk
+
+%mdk-data-line={54}
+\noindent\mdline{54}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/2016-02-19-10-36-25-}{}\mdline{54}%mdk
+
+%mdk-data-line={56}
+\mdhr{}%mdk
+
+%mdk-data-line={57}
+\noindent\mdline{57}\mdcaption{\textbf{Figure~\mdcaptionlabel{4}.}~\mdcaptiontext{Intel VTune top-down tree}}%mdk
 %mdk
 \end{mdcenter}\label{fig-myfigure}%mdk
 %mdk
@@ -135,14 +223,14 @@ to compute a matrix-matrix product with general matrices.%mdk
 %mdk
 \end{itemize}%mdk
 
-%mdk-data-line={52}
-\noindent\mdline{52}They call \mdline{52}\mdcode{MKL}\mdline{52} function \mdline{52}\mdcode{cblas\_sgemm}\mdline{52} many times by \mdline{52}\mdcode{for~loop}\mdline{52} and 
+%mdk-data-line={58}
+\noindent\mdline{58}They call \mdline{58}\mdcode{MKL}\mdline{58} function \mdline{58}\mdcode{cblas\_sgemm}\mdline{58} many times by \mdline{58}\mdcode{for~loop}\mdline{58} and 
 cost almost 90\% of all CPU time. So we guess that those function
  is what we may optimize, aka, hotspots.
-The report(see Figure 4.) showed by\mdline{55}\mdcode{Intel~VTune}\mdline{55}, another profiler, proves our guess.%mdk
+The report(see Figure 4.) showed by\mdline{61}\mdcode{Intel~VTune}\mdline{61}, another profiler, proves our guess.%mdk
 
-%mdk-data-line={59}
-\mdline{59}According to a skim through the source code, we could establish a clear structure about this program. To simplify code, original program could be rewritten in pseudocode:%mdk
+%mdk-data-line={65}
+\mdline{65}According to a skim through the source code, we could establish a clear structure about this program. To simplify code, original program could be rewritten in pseudocode:%mdk
 \begin{mdpre}%mdk
 \noindent~~~{\mdcolor{teal}GetInitFileConfig}(cpuArg)\\
 ~~~{\mdcolor{teal}While}~{\mdcolor{teal}FetchOneChunk}(cpuArg,~onChunk)~{\mdcolor{navy}do}:\\
@@ -153,57 +241,57 @@ The report(see Figure 4.) showed by\mdline{55}\mdcode{Intel~VTune}\mdline{55}, a
 ~~~~{\mdcolor{teal}WriteWts}(nodeArg,~cpuArg)\\
 ~~~~{\mdcolor{teal}UninitProgramConfig}(cpuArg)\\
 %mdk
-\end{mdpre}\noindent\mdline{71}There are two nested loop before \mdline{71}\mdcode{dnn*()}\mdline{71} series, and 
+\end{mdpre}\noindent\mdline{77}There are two nested loop before \mdline{77}\mdcode{dnn*()}\mdline{77} series, and 
 in each of those processing function many matrix-matrix product are
 executed. Whether those hotspots could be parallelized or not depends
-on data scale, dependency and so on. Before we discuss some methods and weighed their pros and cons the implementation of \mdline{74}\mdcode{DNN}\mdline{74} should be most carefully checked.
+on data scale, dependency and so on. Before we discuss some methods and weighed their pros and cons the implementation of \mdline{80}\mdcode{DNN}\mdline{80} should be most carefully checked.
 
-%mdk-data-line={76}
-\subsection{\mdline{76}2.2.\hspace*{0.5em}\mdline{76}Fine Grain Analysis}\label{sec-fine-grain-analysis}%mdk%mdk
+%mdk-data-line={82}
+\subsection{\mdline{82}2.2.\hspace*{0.5em}\mdline{82}Fine Grain Analysis}\label{sec-fine-grain-analysis}%mdk%mdk
 
-%mdk-data-line={78}
-\subsubsection{\mdline{78}2.2.1.\hspace*{0.5em}\mdline{78}Matrix Size}\label{sec-matrix-size}%mdk%mdk
+%mdk-data-line={84}
+\subsubsection{\mdline{84}2.2.1.\hspace*{0.5em}\mdline{84}Matrix Size}\label{sec-matrix-size}%mdk%mdk
 
-%mdk-data-line={80}
-\noindent\mdline{80}All \mdline{80}\mdcode{cblas\_sgemm}\mdline{80} is called like this:%mdk
+%mdk-data-line={86}
+\noindent\mdline{86}All \mdline{86}\mdcode{cblas\_sgemm}\mdline{86} is called like this:%mdk
 \begin{mdpre}%mdk
 \noindent~~cblas\_sgemm({\mdcolor{teal}CblasRowMajor},~{\mdcolor{teal}CblasNoTrans},~{\mdcolor{teal}CblasNoTrans},\textbackslash{}\\
 ~~~~~~~~numN,~numA[i],~numA[i-{\mdcolor{purple}1}],~\textbackslash{}\\
 ~~~~~~~~one,~d\_Y[i-{\mdcolor{purple}1}],~numA[i-{\mdcolor{purple}1}],~d\_W[i],~numA[i],\\
 ~~~~~~~~one,~d\_Y[i],~numA[i]);%mdk
-\end{mdpre}\noindent\mdline{87}The arguments \mdline{87}\mdcode{numN}\mdline{87}, \mdline{87}\mdcode{numA[i]}\mdline{87}, \mdline{87}\mdcode{numA[i-1]}\mdline{87} indicating the size of the matrices:
+\end{mdpre}\noindent\mdline{93}The arguments \mdline{93}\mdcode{numN}\mdline{93}, \mdline{93}\mdcode{numA[i]}\mdline{93}, \mdline{93}\mdcode{numA[i-1]}\mdline{93} indicating the size of the matrices:
 
-%mdk-data-line={89}
+%mdk-data-line={95}
 \begin{itemize}[noitemsep,topsep=\mdcompacttopsep]%mdk
 
-%mdk-data-line={89}
-\item\mdline{89}\mdcode{d\_Y[i-1]}\mdline{89} is a \mdline{89}\mdcode{numN}\mdline{89} row by \mdline{89}\mdcode{numA[i]}\mdline{89} column matrix;%mdk
+%mdk-data-line={95}
+\item\mdline{95}\mdcode{d\_Y[i-1]}\mdline{95} is a \mdline{95}\mdcode{numN}\mdline{95} row by \mdline{95}\mdcode{numA[i]}\mdline{95} column matrix;%mdk
 
-%mdk-data-line={90}
-\item\mdline{90}\mdcode{d\_W[i]}\mdline{90} is a \mdline{90}\mdcode{numN}\mdline{90} row by \mdline{90}\mdcode{numA[i-1]}\mdline{90} column matrix;%mdk
+%mdk-data-line={96}
+\item\mdline{96}\mdcode{d\_W[i]}\mdline{96} is a \mdline{96}\mdcode{numN}\mdline{96} row by \mdline{96}\mdcode{numA[i-1]}\mdline{96} column matrix;%mdk
 
-%mdk-data-line={91}
-\item\mdline{91}\mdcode{d\_Y[i]}\mdline{91} is a \mdline{91}\mdcode{numA[i-1]}\mdline{91} row by \mdline{91}\mdcode{numA[i]}\mdline{91} column matrix.%mdk
+%mdk-data-line={97}
+\item\mdline{97}\mdcode{d\_Y[i]}\mdline{97} is a \mdline{97}\mdcode{numA[i-1]}\mdline{97} row by \mdline{97}\mdcode{numA[i]}\mdline{97} column matrix.%mdk
 %mdk
 \end{itemize}%mdk
 
-%mdk-data-line={93}
-\noindent\mdline{93}As we known the bigger matrix size is, the higher degree of \mdline{93}\mdcode{MKL}\mdline{93} parallelism is. But in the \mdline{93}\mdcode{DNN}\mdline{93} program, the size of matrix is decided by \mdline{93}\mdcode{bunchSize}\mdline{93}, a constant integer (\mdline{93}\ensuremath{\approx}\mdline{93}1024), and element (\mdline{93}\ensuremath{\approx}\mdline{93}1024) of \mdline{93}\mdcode{dnnLayerArr}\mdline{93}, a constant integer array. The two integers are configured by specified file, and we are not allowed to modify it. For this reason there are no sufficiently large matrix to enable \mdline{93}\mdcode{auto~offload~model}\mdline{93} to speed up \mdline{93}\mdcode{DNN}\mdline{93}.\mdline{93}[\mdcite{mkl-mic}{2}]\mdline{93}%mdk
+%mdk-data-line={99}
+\noindent\mdline{99}As we known the bigger matrix size is, the higher degree of \mdline{99}\mdcode{MKL}\mdline{99} parallelism is. But in the \mdline{99}\mdcode{DNN}\mdline{99} program, the size of matrix is decided by \mdline{99}\mdcode{bunchSize}\mdline{99}, a constant integer (\mdline{99}\ensuremath{\approx}\mdline{99}1024), and element (\mdline{99}\ensuremath{\approx}\mdline{99}1024) of \mdline{99}\mdcode{dnnLayerArr}\mdline{99}, a constant integer array. The two integers are configured by specified file, and we are not allowed to modify it. For this reason there are no sufficiently large matrix to enable \mdline{99}\mdcode{auto~offload~model}\mdline{99} to speed up \mdline{99}\mdcode{DNN}\mdline{99}.\mdline{99}[\mdcite{mkl-mic}{2}]\mdline{99}%mdk
 
-%mdk-data-line={95}
-\subsubsection{\mdline{95}2.2.2.\hspace*{0.5em}\mdline{95}Cycles Index}\label{sec-cycles-index}%mdk%mdk
-
-%mdk-data-line={96}
-\noindent\mdline{96}In the \mdline{96}\mdcode{dnn*}\mdline{96} series every loop call \mdline{96}\mdcode{cblas\_sgemm}\mdline{96} \mdline{96}\mdcode{numN}\mdline{96}(\mdline{96}\ensuremath{\approx}\mdline{96}7) times, which indicates the length of \mdline{96}\mdcode{dnnLayerArr}\mdline{96}. It\mdline{96}'\mdline{96}s regretful that the value cannot be modified by us. Giving the number of core(\mdline{96}\ensuremath{\approx}\mdline{96}24 on CPU or \mdline{96}\ensuremath{\approx}\mdline{96}60 on MIC) and constant \mdline{96}\mdcode{numN}\mdline{96}, it\mdline{96}'\mdline{96}s not wise to parallelize those loops.%mdk
-
-%mdk-data-line={98}
-\section{\mdline{98}3.\hspace*{0.5em}\mdline{98}Parallelization Design Methods}\label{sec-parallelization-design-methods}%mdk%mdk
-
-%mdk-data-line={100}
-\subsection{\mdline{100}3.1.\hspace*{0.5em}\mdline{100}Fine Grain Parallelism}\label{sec-fine-grain-parallelism}%mdk%mdk
+%mdk-data-line={101}
+\subsubsection{\mdline{101}2.2.2.\hspace*{0.5em}\mdline{101}Cycles Index}\label{sec-cycles-index}%mdk%mdk
 
 %mdk-data-line={102}
-\noindent\mdline{102}In function \mdline{102}\mdcode{dnnForward}\mdline{102}, it\mdline{102}'\mdline{102}s easy to observe there is a loop invoking \mdline{102}\mdcode{cblas\_sgemm}\mdline{102}, which nearly cost all CPU time consumed by this function. So it\mdline{102}'\mdline{102}s same with the \mdline{102}\mdcode{dnnBackward}\mdline{102} and \mdline{102}\mdcode{dnnUpdate}\mdline{102}. A rough thoughts occurred to us that we could parallelize this \mdline{102}\mdcode{for~loop}\mdline{102} using multi-threads. But data dependency in \mdline{102}\mdcode{for~loop}\mdline{102} and relatively small cycle index make it inefficient to parallelize. So   we should consider generalizing the parallelization region to smaller scale. Taking the feature of \mdline{102}\mdcode{MIC}\mdline{102} in to account we hope to execute highly parallel code and/or compute intensive code on the \mdline{102}\mdcode{MIC}\mdline{102}. Focusing on \mdline{102}\mdcode{dnn*}\mdline{102} series it\mdline{102}'\mdline{102}s easy to find an abstract structure to generalize them:%mdk
+\noindent\mdline{102}In the \mdline{102}\mdcode{dnn*}\mdline{102} series every loop call \mdline{102}\mdcode{cblas\_sgemm}\mdline{102} \mdline{102}\mdcode{numN}\mdline{102}(\mdline{102}\ensuremath{\approx}\mdline{102}7) times, which indicates the length of \mdline{102}\mdcode{dnnLayerArr}\mdline{102}. It\mdline{102}'\mdline{102}s regretful that the value cannot be modified by us. Giving the number of core(\mdline{102}\ensuremath{\approx}\mdline{102}24 on CPU or \mdline{102}\ensuremath{\approx}\mdline{102}60 on MIC) and constant \mdline{102}\mdcode{numN}\mdline{102}, it\mdline{102}'\mdline{102}s not wise to parallelize those loops.%mdk
+
+%mdk-data-line={104}
+\section{\mdline{104}3.\hspace*{0.5em}\mdline{104}Parallelization Design Methods}\label{sec-parallelization-design-methods}%mdk%mdk
+
+%mdk-data-line={106}
+\subsection{\mdline{106}3.1.\hspace*{0.5em}\mdline{106}Fine Grain Parallelism}\label{sec-fine-grain-parallelism}%mdk%mdk
+
+%mdk-data-line={108}
+\noindent\mdline{108}In function \mdline{108}\mdcode{dnnForward}\mdline{108}, it\mdline{108}'\mdline{108}s easy to observe there is a loop invoking \mdline{108}\mdcode{cblas\_sgemm}\mdline{108}, which nearly cost all CPU time consumed by this function. So it\mdline{108}'\mdline{108}s same with the \mdline{108}\mdcode{dnnBackward}\mdline{108} and \mdline{108}\mdcode{dnnUpdate}\mdline{108}. A rough thoughts occurred to us that we could parallelize this \mdline{108}\mdcode{for~loop}\mdline{108} using multi-threads. But data dependency in \mdline{108}\mdcode{for~loop}\mdline{108} and relatively small cycle index make it inefficient to parallelize. So   we should consider generalizing the parallelization region to smaller scale. Taking the feature of \mdline{108}\mdcode{MIC}\mdline{108} in to account we hope to execute highly parallel code and/or compute intensive code on the \mdline{108}\mdcode{MIC}\mdline{108}. Focusing on \mdline{108}\mdcode{dnn*}\mdline{108} series it\mdline{108}'\mdline{108}s easy to find an abstract structure to generalize them:%mdk
 \begin{mdpre}%mdk
 \noindent~~extern~{\mdcolor{maroon}"}{\mdcolor{maroon}C}{\mdcolor{maroon}"}~{\mdcolor{navy}int}~dnn***({\mdcolor{teal}NodeArg}~\&nodeArg)\\
 ~~\{\\
@@ -224,42 +312,42 @@ on data scale, dependency and so on. Before we discuss some methods and weighed 
 ~~~~~~{\mdcolor{navy}return}~{\mdcolor{purple}0};\\
 ~~\}\\
 %mdk
-\end{mdpre}\noindent\mdline{124}Arguments of \mdline{124}\mdcode{func1}\mdline{124}, \mdline{124}\mdcode{func2}\mdline{124}, \mdline{124}\mdcode{func3}\mdline{124} is matrix or vector, which is easy to parallelized. Taking all factors into consider, we have two choose: a) use serial \mdline{124}\mdcode{MKL}\mdline{124} then parallelize the whole \mdline{124}\mdcode{for~loop}\mdline{124}, b) use multi-thread \mdline{124}\mdcode{MKL}\mdline{124} and parallelize \mdline{124}\mdcode{func1,~2,~3}\mdline{124}. The two measures all support \mdline{124}\mdcode{MIC}\mdline{124}, but we prefer the b) because we could benefit from the parallel optimization of \mdline{124}\mdcode{MKL}\mdline{124} and cooperation among \mdline{124}\mdcode{MKL}\mdline{124} and \mdline{124}\mdcode{MIC}\mdline{124}.
+\end{mdpre}\noindent\mdline{130}Arguments of \mdline{130}\mdcode{func1}\mdline{130}, \mdline{130}\mdcode{func2}\mdline{130}, \mdline{130}\mdcode{func3}\mdline{130} is matrix or vector, which is easy to parallelized. Taking all factors into consider, we have two choose: a) use serial \mdline{130}\mdcode{MKL}\mdline{130} then parallelize the whole \mdline{130}\mdcode{for~loop}\mdline{130}, b) use multi-thread \mdline{130}\mdcode{MKL}\mdline{130} and parallelize \mdline{130}\mdcode{func1,~2,~3}\mdline{130}. The two measures all support \mdline{130}\mdcode{MIC}\mdline{130}, but we prefer the b) because we could benefit from the parallel optimization of \mdline{130}\mdcode{MKL}\mdline{130} and cooperation among \mdline{130}\mdcode{MKL}\mdline{130} and \mdline{130}\mdcode{MIC}\mdline{130}.
 
-%mdk-data-line={126}
+%mdk-data-line={132}
 \begin{figure}[tbp]%mdk
 \begin{mdcenter}%mdk
 
-%mdk-data-line={127}
-\noindent\mdline{127}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/2016-02-21-21-15-24-}{}\mdline{127}%mdk
+%mdk-data-line={133}
+\noindent\mdline{133}\includegraphics[keepaspectratio=true,width=\dimmin{}{\dimwidth{0.90}}]{images/2016-02-21-21-15-24-}{}\mdline{133}%mdk
 
-%mdk-data-line={130}
+%mdk-data-line={136}
 \mdhr{}%mdk
 
-%mdk-data-line={131}
-\noindent\mdline{131}\mdcaption{\textbf{Figure~\mdcaptionlabel{5}.}~\mdcaptiontext{\mdcode{DNN} structure}}%mdk
+%mdk-data-line={137}
+\noindent\mdline{137}\mdcaption{\textbf{Figure~\mdcaptionlabel{5}.}~\mdcaptiontext{\mdcode{DNN} structure}}%mdk
 %mdk
 \end{mdcenter}\label{fig-figure}%mdk
 %mdk
 \end{figure}%mdk
 
-%mdk-data-line={133}
-\subsection{\mdline{133}3.2.\hspace*{0.5em}\mdline{133}Coarse Grain Parallelism}\label{sec-coarse-grain-parallelism}%mdk%mdk
-
-%mdk-data-line={134}
-\noindent\mdline{134}To implenment coarse grain parallelism we hope that each thread/process finish large subcomponents. To achieve this goal \mdline{134}\mdcode{DNN}\mdline{134} program should be divided into (mostly) independent and similar proportions, and every proportion should be as large as possible. But considering the structure of \mdline{134}\mdcode{DNN}\mdline{134} the default ordering of \mdline{134}\mdcode{dnn*}\mdline{134} series couldn\mdline{134}'\mdline{134}t be changed, neither does the processing of file-reading. So in our opinion it\mdline{134}'\mdline{134}s difficult to implement coarse grain parallelism without any change to \mdline{134}\mdcode{DNN}\mdline{134} structure and its dataset.%mdk
-
-%mdk-data-line={136}
-\section{\mdline{136}4.\hspace*{0.5em}\mdline{136}Performance Optimization Methods}\label{sec-performance-optimization-methods}%mdk%mdk
-
-%mdk-data-line={138}
-\subsection{\mdline{138}4.1.\hspace*{0.5em}\mdline{138}Compiler Assisted Offload}\label{sec-compiler-assisted-offload}%mdk%mdk
+%mdk-data-line={139}
+\subsection{\mdline{139}3.2.\hspace*{0.5em}\mdline{139}Coarse Grain Parallelism}\label{sec-coarse-grain-parallelism}%mdk%mdk
 
 %mdk-data-line={140}
-\subsubsection{\mdline{140}4.1.1.\hspace*{0.5em}\mdline{140}Scope of Offloaded Sections}\label{sec-scope-of-offloaded-sections}%mdk%mdk
+\noindent\mdline{140}To implenment coarse grain parallelism we hope that each thread/process finish large subcomponents. To achieve this goal \mdline{140}\mdcode{DNN}\mdline{140} program should be divided into (mostly) independent and similar proportions, and every proportion should be as large as possible. But considering the structure of \mdline{140}\mdcode{DNN}\mdline{140} the default ordering of \mdline{140}\mdcode{dnn*}\mdline{140} series couldn\mdline{140}'\mdline{140}t be changed, neither does the processing of file-reading. So in our opinion it\mdline{140}'\mdline{140}s difficult to implement coarse grain parallelism without any change to \mdline{140}\mdcode{DNN}\mdline{140} structure and its dataset.%mdk
 
-%mdk-data-line={141}
-\noindent\mdline{141}We have talked about the common structure of \mdline{141}\mdcode{DNN}\mdline{141} series. In their \mdline{141}\mdcode{for}\mdline{141} loop there are serial processing and \mdline{141}\mdcode{MKL}\mdline{141} function appear alternately, and serial processing modifies data which is used as input in next \mdline{141}\mdcode{cblas\_sgemm}\mdline{141}function. Data change between \mdline{141}\mdcode{MIC}\mdline{141} and \mdline{141}\mdcode{CPU}\mdline{141} is slow because of \mdline{141}\mdcode{PCI-E}\mdline{141} speeds so the best known methods\mdline{141}[\mdcite{effective_use}{3}]\mdline{141} is to make the whole section of code an offload unit, which could reduce most of data transfer. In addition, because we nearly make the three \mdline{141}\mdcode{dnn}\mdline{141} functions offload units, data transfer between them is less. SO, all we need do is to transfer input data in the start of \mdline{141}\mdcode{for~loop}\mdline{141} from \mdline{141}\mdcode{CPU}\mdline{141} to \mdline{141}\mdcode{MIC}\mdline{141} and transfer output after loop to \mdline{141}\mdcode{CPU}\mdline{141}. \mdline{141}\mdcode{dnn}\mdline{141} Function is like this (issues about array transfer discussed below):%mdk
+%mdk-data-line={142}
+\section{\mdline{142}4.\hspace*{0.5em}\mdline{142}Performance Optimization Methods}\label{sec-performance-optimization-methods}%mdk%mdk
+
+%mdk-data-line={144}
+\subsection{\mdline{144}4.1.\hspace*{0.5em}\mdline{144}Compiler Assisted Offload}\label{sec-compiler-assisted-offload}%mdk%mdk
+
+%mdk-data-line={146}
+\subsubsection{\mdline{146}4.1.1.\hspace*{0.5em}\mdline{146}Scope of Offloaded Sections}\label{sec-scope-of-offloaded-sections}%mdk%mdk
+
+%mdk-data-line={147}
+\noindent\mdline{147}We have talked about the common structure of \mdline{147}\mdcode{DNN}\mdline{147} series. In their \mdline{147}\mdcode{for}\mdline{147} loop there are serial processing and \mdline{147}\mdcode{MKL}\mdline{147} function appear alternately, and serial processing modifies data which is used as input in next \mdline{147}\mdcode{cblas\_sgemm}\mdline{147}function. Data change between \mdline{147}\mdcode{MIC}\mdline{147} and \mdline{147}\mdcode{CPU}\mdline{147} is slow because of \mdline{147}\mdcode{PCI-E}\mdline{147} speeds so the best known methods\mdline{147}[\mdcite{effective_use}{3}]\mdline{147} is to make the whole section of code an offload unit, which could reduce most of data transfer. In addition, because we nearly make the three \mdline{147}\mdcode{dnn}\mdline{147} functions offload units, data transfer between them is less. SO, all we need do is to transfer input data in the start of \mdline{147}\mdcode{for~loop}\mdline{147} from \mdline{147}\mdcode{CPU}\mdline{147} to \mdline{147}\mdcode{MIC}\mdline{147} and transfer output after loop to \mdline{147}\mdcode{CPU}\mdline{147}. \mdline{147}\mdcode{dnn}\mdline{147} Function is like this (issues about array transfer discussed below):%mdk
 \begin{mdpre}%mdk
 \noindent~~extern~{\mdcolor{maroon}"}{\mdcolor{maroon}C}{\mdcolor{maroon}"}~{\mdcolor{navy}int}~dnn***({\mdcolor{teal}NodeArg}~\&nodeArg)\\
 ~~\{\\
@@ -288,11 +376,11 @@ on data scale, dependency and so on. Before we discuss some methods and weighed 
 ~~\}\\
 %mdk
 \end{mdpre}
-%mdk-data-line={171}
-\subsubsection{\mdline{171}4.1.2.\hspace*{0.5em}\mdline{171}Dimensionality Reduction}\label{sec-dimensionality-reduction}%mdk%mdk
+%mdk-data-line={177}
+\subsubsection{\mdline{177}4.1.2.\hspace*{0.5em}\mdline{177}Dimensionality Reduction}\label{sec-dimensionality-reduction}%mdk%mdk
 
-%mdk-data-line={172}
-\noindent\mdline{172}As we know, \mdline{172}\mdcode{MIC}\mdline{172} disallow specifying array of pointer, aka. multi-dimension array, to be use in \mdline{172}\mdcode{in}\mdline{172} or \mdline{172}\mdcode{out}\mdline{172} clauses. To cap it all element in those arrays used in \mdline{172}\mdcode{DNN}\mdline{172} aren\mdline{172}'\mdline{172}t stored consecutively in memory and have different size. So it\mdline{172}'\mdline{172}s necessary for us to calculate array size to allocate one-dimension array. Code like this:%mdk
+%mdk-data-line={178}
+\noindent\mdline{178}As we know, \mdline{178}\mdcode{MIC}\mdline{178} disallow specifying array of pointer, aka. multi-dimension array, to be use in \mdline{178}\mdcode{in}\mdline{178} or \mdline{178}\mdcode{out}\mdline{178} clauses. To cap it all element in those arrays used in \mdline{178}\mdcode{DNN}\mdline{178} aren\mdline{178}'\mdline{178}t stored consecutively in memory and have different size. So it\mdline{178}'\mdline{178}s necessary for us to calculate array size to allocate one-dimension array. Code like this:%mdk
 \begin{mdpre}%mdk
 \noindent~~~~{\mdcolor{teal}W\_len}~=~{\mdcolor{purple}0};\\
 ~~~~{\mdcolor{darkgreen}/*}{\mdcolor{darkgreen}~calculate~element~size~}{\mdcolor{darkgreen}*/}\\
@@ -308,11 +396,11 @@ on data scale, dependency and so on. Before we discuss some methods and weighed 
 ~~~~\}\\
 %mdk
 \end{mdpre}
-%mdk-data-line={189}
-\subsection{\mdline{189}4.2.\hspace*{0.5em}\mdline{189}\mdcode{OpenMP}\mdline{189} Optimization}\label{sec-openmp-optimization}%mdk%mdk
+%mdk-data-line={195}
+\subsection{\mdline{195}4.2.\hspace*{0.5em}\mdline{195}\mdcode{OpenMP}\mdline{195} Optimization}\label{sec-openmp-optimization}%mdk%mdk
 
-%mdk-data-line={190}
-\noindent\mdline{190}Though \mdline{190}\mdcode{MKL}\mdline{190} function could decide whether to be threaded after a runtime check\mdline{190}[\mdcite{mkl_threads}{1}, \mdcite{paramkl}{4}]\mdline{190}, other serial functions still run slowly in it. To maximize the utilization it\mdline{190}'\mdline{190}s better to have more multithreading processing\mdline{190}[\mdcite{effective_use}{3}]\mdline{190}. In pseudocode we discuss in \mdline{190}\mdcode{4.1.1}\mdline{190}, \mdline{190}\mdcode{fun1}\mdline{190}, \mdline{190}\mdcode{fun2}\mdline{190} and \mdline{190}\mdcode{fun3}\mdline{190} are bottleneck. Those function all take one or more matrices as arguments, access and modify them then return nothing. Without data dependency it is easy to parallelize them using \mdline{190}\mdcode{OpenMp}\mdline{190}:%mdk
+%mdk-data-line={196}
+\noindent\mdline{196}Though \mdline{196}\mdcode{MKL}\mdline{196} function could decide whether to be threaded after a runtime check\mdline{196}[\mdcite{mkl_threads}{1}, \mdcite{paramkl}{4}]\mdline{196}, other serial functions still run slowly in it. To maximize the utilization it\mdline{196}'\mdline{196}s better to have more multithreading processing\mdline{196}[\mdcite{effective_use}{3}]\mdline{196}. In pseudocode we discuss in \mdline{196}\mdcode{4.1.1}\mdline{196}, \mdline{196}\mdcode{fun1}\mdline{196}, \mdline{196}\mdcode{fun2}\mdline{196} and \mdline{196}\mdcode{fun3}\mdline{196} are bottleneck. Those function all take one or more matrices as arguments, access and modify them then return nothing. Without data dependency it is easy to parallelize them using \mdline{196}\mdcode{OpenMp}\mdline{196}:%mdk
 \begin{mdpre}%mdk
 \noindent~~extern~{\mdcolor{maroon}"}{\mdcolor{maroon}C}{\mdcolor{maroon}"}~{\mdcolor{navy}int}~errorOutput({\mdcolor{navy}float}~*{\mdcolor{teal}E},~{\mdcolor{navy}float}~*{\mdcolor{teal}Z},~...)\\
 ~~\{\\
@@ -333,46 +421,46 @@ on data scale, dependency and so on. Before we discuss some methods and weighed 
 ~~\}\\
 %mdk
 \end{mdpre}
-%mdk-data-line={212}
-\subsection{\mdline{212}4.3.\hspace*{0.5em}\mdline{212}Alignment}\label{sec-alignment}%mdk%mdk
+%mdk-data-line={218}
+\subsection{\mdline{218}4.3.\hspace*{0.5em}\mdline{218}Alignment}\label{sec-alignment}%mdk%mdk
 
-%mdk-data-line={213}
-\noindent\mdline{213}Alignment is important for \mdline{213}\mdcode{MKL}\mdline{213} function to optimize program further and for compiler to assist vectorization. For example, allocating memory for matrices aligned on 64-byte boundary(or more) allows \mdline{213}\mdcode{cblas\_sgemm}\mdline{213} to have better performance. Using \mdline{213}\mdcode{mkl\_alloc}\mdline{213} is easy to allocate or deallocate an aligned memory buffer:%mdk
+%mdk-data-line={219}
+\noindent\mdline{219}Alignment is important for \mdline{219}\mdcode{MKL}\mdline{219} function to optimize program further and for compiler to assist vectorization. For example, allocating memory for matrices aligned on 64-byte boundary(or more) allows \mdline{219}\mdcode{cblas\_sgemm}\mdline{219} to have better performance. Using \mdline{219}\mdcode{mkl\_alloc}\mdline{219} is easy to allocate or deallocate an aligned memory buffer:%mdk
 \begin{mdpre}%mdk
 \noindent~~~~{\mdcolor{navy}float}~*d\_X~=~({\mdcolor{navy}float}~*)mkl\_malloc({\mdcolor{teal}N}~*~sizeof({\mdcolor{navy}float}),~{\mdcolor{purple}2048});\\
 ~~~~...\\
 ~~~~mkl\_free(d\_x);%mdk
-\end{mdpre}\noindent\mdline{219}Data transfer rate between \mdline{219}\mdcode{CPU}\mdline{219} and \mdline{219}\mdcode{MIC}\mdline{219} is slow, so align CPU data on a 64B boundary or higher is necessary for improve data transfer rate\mdline{219}[\mdcite{effective_use}{3}]\mdline{219}. Align at 2MB for maximum transfer rate, so we use \mdline{219}\mdcode{align~modifier}\mdline{219} to improve it and enable vectorization of code on \mdline{219}\mdcode{MIC}\mdline{219}:
+\end{mdpre}\noindent\mdline{225}Data transfer rate between \mdline{225}\mdcode{CPU}\mdline{225} and \mdline{225}\mdcode{MIC}\mdline{225} is slow, so align CPU data on a 64B boundary or higher is necessary for improve data transfer rate\mdline{225}[\mdcite{effective_use}{3}]\mdline{225}. Align at 2MB for maximum transfer rate, so we use \mdline{225}\mdcode{align~modifier}\mdline{225} to improve it and enable vectorization of code on \mdline{225}\mdcode{MIC}\mdline{225}:
 \begin{mdpre}%mdk
 \noindent~~~~\#pragma~offload~target(mic)~in(pd\_X:~length({\mdcolor{teal}X\_len})~align({\mdcolor{purple}2048}))\\
 ~~~~...%mdk
 \end{mdpre}
-%mdk-data-line={225}
-\subsection{\mdline{225}4.4.\hspace*{0.5em}\mdline{225}Environmental Variables Settings}\label{sec-environmental-variables-settings}%mdk%mdk
-
-%mdk-data-line={226}
-\subsubsection{\mdline{226}4.4.1.\hspace*{0.5em}\mdline{226}\mdcode{MKL\_DYNAMIC=true}\mdline{226}:}\label{sec-mkl_dynamictrue-}%mdk%mdk
-
-%mdk-data-line={227}
-\noindent\mdline{227}This variable leads to a dynamic reduction of number of \mdline{227}\mdcode{OpenMPI}\mdline{227} threads based on analysis of system workload, so it may reduce possible oversubscription from MKL threading.%mdk
-
-%mdk-data-line={229}
-\subsubsection{\mdline{229}4.4.2.\hspace*{0.5em}\mdline{229}\mdcode{MKL\_NUM\_THREADS=57~OMP\_NUM\_THREADS=57}\mdline{229}:}\label{sec-mkl_num_threads57-omp_num_threads57-}%mdk%mdk
-
-%mdk-data-line={230}
-\noindent\mdline{230}Those variables decide a maximum threads allowed to create. Since parallelization regions of this program run in the \mdline{230}\mdcode{MIC}\mdline{230} which has 57 cores in test platform, we set those variables equal to 57.%mdk
+%mdk-data-line={231}
+\subsection{\mdline{231}4.4.\hspace*{0.5em}\mdline{231}Environmental Variables Settings}\label{sec-environmental-variables-settings}%mdk%mdk
 
 %mdk-data-line={232}
-\subsubsection{\mdline{232}4.4.3.\hspace*{0.5em}\mdline{232}\mdcode{MIC\_USE\_2MB\_BUFFERS=64K}}\label{sec-mic_use_2mb_buffers64k}%mdk%mdk
+\subsubsection{\mdline{232}4.4.1.\hspace*{0.5em}\mdline{232}\mdcode{MKL\_DYNAMIC=true}\mdline{232}:}\label{sec-mkl_dynamictrue-}%mdk%mdk
 
 %mdk-data-line={233}
-\noindent\mdline{233}2MB pages are needed to improve transfer rate between \mdline{233}\mdcode{MIC}\mdline{233} and \mdline{233}\mdcode{CPU}\mdline{233}.\mdline{233}[\mdcite{page_file}{5}]\mdline{233}%mdk
+\noindent\mdline{233}This variable leads to a dynamic reduction of number of \mdline{233}\mdcode{OpenMPI}\mdline{233} threads based on analysis of system workload, so it may reduce possible oversubscription from MKL threading.%mdk
 
 %mdk-data-line={235}
-\section{\mdline{235}5.\hspace*{0.5em}\mdline{235}Testing Process and Results on the CPU+MIC Platform}\label{sec-testing-process-and-results-on-the-cpumic-platform}%mdk%mdk
+\subsubsection{\mdline{235}4.4.2.\hspace*{0.5em}\mdline{235}\mdcode{MKL\_NUM\_THREADS=57~OMP\_NUM\_THREADS=57}\mdline{235}:}\label{sec-mkl_num_threads57-omp_num_threads57-}%mdk%mdk
 
-%mdk-data-line={238;out/document-bib.bbl.mdk:1}
-%mdk-data-line={238;out/document-bib.bbl.mdk:2}
+%mdk-data-line={236}
+\noindent\mdline{236}Those variables decide a maximum threads allowed to create. Since parallelization regions of this program run in the \mdline{236}\mdcode{MIC}\mdline{236} which has 57 cores in test platform, we set those variables equal to 57.%mdk
+
+%mdk-data-line={238}
+\subsubsection{\mdline{238}4.4.3.\hspace*{0.5em}\mdline{238}\mdcode{MIC\_USE\_2MB\_BUFFERS=64K}}\label{sec-mic_use_2mb_buffers64k}%mdk%mdk
+
+%mdk-data-line={239}
+\noindent\mdline{239}2MB pages are needed to improve transfer rate between \mdline{239}\mdcode{MIC}\mdline{239} and \mdline{239}\mdcode{CPU}\mdline{239}.\mdline{239}[\mdcite{page_file}{5}]\mdline{239}%mdk
+
+%mdk-data-line={241}
+\section{\mdline{241}5.\hspace*{0.5em}\mdline{241}Testing Process and Results on the CPU+MIC Platform}\label{sec-testing-process-and-results-on-the-cpumic-platform}%mdk%mdk
+
+%mdk-data-line={244;out/document-bib.bbl.mdk:1}
+%mdk-data-line={244;out/document-bib.bbl.mdk:2}
 \mdsetrefname{References}%mdk
 {\mdbibindent{0}%mdk
 \begin{thebibliography}{5}%mdk
