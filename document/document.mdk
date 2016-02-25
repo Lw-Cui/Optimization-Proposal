@@ -138,12 +138,7 @@ To implenment coarse grain parallelism we hope that each thread/process finish l
 ## Compiler Assisted Offload
 
 ### Scope of Offloaded Sections
-We have talked about the common structure of `DNN` series. In their `for` loop there are serial processing and `MKL` function appear alternately, and serial processing modifies data which is used as input in next `cblas_sgemm`function. Data change between `MIC` and `CPU` is slow because of `PCI-E` speeds so the best known methods[@effective_use] is to make the whole section of code an offload unit, which could reduce most of data transfer. In addition, because we nearly make the three `dnn` functions offload units, data transfer between them is less. SO, all we need do is to transfer input data in the start of `for loop` from `CPU` to `MIC` and transfer output after loop to `CPU`.
-
-### Dimensionality Reduction
-As we know, `MIC` disallow specifying array of pointer, aka. multi-dimension array, to be use in `in` or `out` clauses. To cap it all the arrays used in `DNN` aren't stored consecutively in memory. 
-
-`dnn` Function is like this:
+We have talked about the common structure of `DNN` series. In their `for` loop there are serial processing and `MKL` function appear alternately, and serial processing modifies data which is used as input in next `cblas_sgemm`function. Data change between `MIC` and `CPU` is slow because of `PCI-E` speeds so the best known methods[@effective_use] is to make the whole section of code an offload unit, which could reduce most of data transfer. In addition, because we nearly make the three `dnn` functions offload units, data transfer between them is less. SO, all we need do is to transfer input data in the start of `for loop` from `CPU` to `MIC` and transfer output after loop to `CPU`. `dnn` Function is like this (issues about array transfer discussed below):
 ```java
   extern "C" int dnn***(NodeArg &nodeArg)
 {
@@ -170,6 +165,24 @@ As we know, `MIC` disallow specifying array of pointer, aka. multi-dimension arr
     } 
     return 0;
 }
+
+```
+
+### Dimensionality Reduction
+As we know, `MIC` disallow specifying array of pointer, aka. multi-dimension array, to be use in `in` or `out` clauses. To cap it all element in those arrays used in `DNN` aren't stored consecutively in memory and have different size. So it's necessary for us to calculate array size to allocate one-dimension array. Code like this:
+```java
+    W_len = 0;
+    /* calculate element size */
+    for (int i = 1; i < dnnLayerNum; i++) {
+        W_pos[i - 1] = W_len;
+        W_len += /* i-st element size */;
+    }
+    /* allocate memory */
+    pd_W = (float *)mkl_malloc(W_len * sizeof(float), 64);
+    /* build two-dimension array */
+    for (int i = 0; i < dnnLayerNum - 1; i++) {
+        d_W[i] = pd_W + W_pos[i];
+    }
 
 ```
 
