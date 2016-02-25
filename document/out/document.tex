@@ -458,9 +458,23 @@ on data scale, dependency and so on. Before we discuss some methods and weighed 
 
 %mdk-data-line={241}
 \section{\mdline{241}5.\hspace*{0.5em}\mdline{241}Testing Process and Results on the CPU+MIC Platform}\label{sec-testing-process-and-results-on-the-cpumic-platform}%mdk%mdk
+\begin{mdtabular}{3}{\dimeval{(\linewidth)/3}}{1ex}%mdk
+\begin{tabular}{llr}\midrule[\dimpx{2}]
+\multicolumn{2}{c}{{\mdseries\mdline{244} Methods}}&\multicolumn{1}{r}{{\mdseries\mdline{244}}}\\
+\cmidrule{1-1}\cmidrule{2-2}
+{\mdseries\mdline{246} Description}&\multicolumn{1}{c}{{\mdseries\mdline{246} Notes}}&{\mdseries\mdline{246}       \mdline{246}\hspace*{1em}\mdline{246}Time (ms)}\\
 
-%mdk-data-line={244;out/document-bib.bbl.mdk:1}
-%mdk-data-line={244;out/document-bib.bbl.mdk:2}
+\midrule
+\mdline{248} CPU&\mdline{248}&\mdline{248} 13.65\\
+\mdline{249} OpenMP&\mdline{249}&\mdline{249} 0.01\\
+\mdline{250} MIC&\mdline{250}&\mdline{250} 92.50\\
+\mdline{251} MIC with OpenMP\mdline{251}\hspace*{1em}&\mdline{251}&\mdline{251} 33.33\\
+\mdline{252} Final Result&\mdline{252}&\mdline{252} 8.99\\
+\midrule[\dimpx{2}]
+\end{tabular}\end{mdtabular}
+
+%mdk-data-line={256;out/document-bib.bbl.mdk:1}
+%mdk-data-line={256;out/document-bib.bbl.mdk:2}
 \mdsetrefname{References}%mdk
 {\mdbibindent{0}%mdk
 \begin{thebibliography}{5}%mdk

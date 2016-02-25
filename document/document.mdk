@@ -240,5 +240,17 @@ Those variables decide a maximum threads allowed to create. Since parallelizatio
 
 # Testing Process and Results on the CPU+MIC Platform
 
+| ---------------------| ---------| ----------------------|
+| Methods                        ||                       |
+| \/-------------------| ---------|                       |
+| Description          | &emsp;&emsp;Notes    |       &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Time (ms) |
+| :--------------------| ---------| ---:                  |
+| CPU                  |          | 13.65                 |
+| OpenMP               |          | 0.01                  |
+| MIC                  |          | 92.50                 |
+| MIC with OpenMP&emsp;&emsp;&emsp;|          | 33.33                 |      
+| Final Result         |          | 8.99                  |
+| ---------------------| ---------| ----------------------|
+{ .booktable }
 
 [BIB]
