@@ -216,15 +216,15 @@ Though `MKL` function could decide whether to be threaded after a runtime check[
 ```
 
 ## Alignment
-Alignment is important for `MKL` function to optimize program further and for compiler to assist vectorization. For example, allocating memory for matrices aligned on 64-byte boundary(or more) allows `cblas_sgemm` to have better performance. Using `mkl_alloc` is easy to allocate or deallocate an aligned memory buffer:
+Alignment is important for `MKL` function to optimize program further and for compiler to assist vectorization. For example, allocating memory for matrices aligned on 64-byte boundary(or more) allows `cblas_sgemm` to have better performance. Using `mkl_alloc` is easy to allocate or deallocate an aligned `2MB(0x200000B)` memory buffer :
  ```java
-    float *d_X = (float *)mkl_malloc(N * sizeof(float), 2048);
+    float *d_X = (float *)mkl_malloc(N * sizeof(float), 0x200000);
     ...
     mkl_free(d_x);
  ```
 Data transfer rate between `CPU` and `MIC` is slow, so align CPU data on a 64B boundary or higher is necessary for improve data transfer rate[@effective_use]. Align at 2MB for maximum transfer rate, so we use `align modifier` to improve it and enable vectorization of code on `MIC`:
 ```java
-    #pragma offload target(mic) in(pd_X: length(X_len) align(2048))
+    #pragma offload target(mic) in(pd_X: length(X_len) align(0x200000))
     ...
 ```
 
@@ -240,17 +240,17 @@ Those variables decide a maximum threads allowed to create. Since parallelizatio
 
 # Testing Process and Results on the CPU+MIC Platform
 
-| ---------------------| ---------| ----------------------|
-| Methods                        ||                       |
-| \/-------------------| ---------|                       |
-| Description          | &emsp;&emsp;Notes    |       &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Time (ms) |
-| :--------------------| ---------| ---:                  |
-| CPU                  |          | 13.65                 |
-| OpenMP               |          | 0.01                  |
-| MIC                  |          | 92.50                 |
-| MIC with OpenMP&emsp;&emsp;&emsp;|          | 33.33                 |      
-| Final Result         |          | 8.99                  |
-| ---------------------| ---------| ----------------------|
+| ----------------------| ----------------------| --------------|--------------|
+| Methods                                      ||               |              |
+| \/--------------------| ----------------------|               |              |
+| Description           | Note                  |Time (ms)      |&emsp;Speedup |
+| ----------------------| ----------------------| -------------:|---:          |
+| CPU                   |                       | 1533,9652.250 | 1.0          |
+| OpenMP                | OpenMP@CPU            | 0.01          |              |
+| MIC                   | With Alignment &emsp; | 92.50         |              |
+| MIC with OpenMP &emsp;| OpenMP@MIC            | 33.33         |              |
+| Final Result          |                       |333,205.375    | 4.6          |
+| ----------------------| ----------------------| --------------|--------------|
 { .booktable }
 
 [BIB]
