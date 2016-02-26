@@ -1,9 +1,7 @@
 Title         : Optimization of a DNN Program on the CPU+MIC Platform
 Logo          : False
 Bibliography: reference.bib
-Author      : Liwei Cui
-Affiliation : University of Electronic Secience and Technology of China
-Email       : 2014060101003@std.uestc.edu.cn
+Author : University of Electronic Secience and Technology of China
 Title Note  : &date;
 Sub Title   : Competition proposal of ASC
 
@@ -101,8 +99,11 @@ In the `dnn*` series every loop call `cblas_sgemm` `numN`(&asymp;7) times, which
 # Parallelization Design Methods
 
 ## Fine Grain Parallelism
-
-In function `dnnForward`, it's easy to observe there is a loop invoking `cblas_sgemm`, which nearly cost all CPU time consumed by this function. So it's same with the `dnnBackward` and `dnnUpdate`. A rough thoughts occurred to us that we could parallelize this `for loop` using multi-threads. But data dependency in `for loop` and relatively small cycle index make it inefficient to parallelize. So   we should consider generalizing the parallelization region to smaller scale. Taking the feature of `MIC` in to account we hope to execute highly parallel code and/or compute intensive code on the `MIC`. Focusing on `dnn*` series it's easy to find an abstract structure to generalize them:
+~ Figure { #fig-figure; caption:"Overview of consumed time"}
+![2016-02-19 10:36:48屏幕截图]
+[2016-02-19 10:36:48屏幕截图]: images/2016-02-19-10-36-48-.png "2016-02-19 10:36:48屏幕截图" { width:auto; max-width:90% }
+~
+From the figure above it's easy to find that `dnn*` series, which invoke `cblas_sgemm` many times in `for loop`, nearly cost all CPU time. A rough thoughts occurred to us that we could parallelize those `for loop` using multi-threads. But data dependency in `for loop` and relatively small cycle index make it inefficient. So we decide to reduce the size of parallelization region. Taking the feature of `MIC` in to account we hope to execute highly parallel and compute intensive code on the `MIC`.[@effective_use] Focusing on `dnn*` series we could find an abstract structure to generalize them:
 ```java
   extern "C" int dnn***(NodeArg &nodeArg)
   {
@@ -124,7 +125,7 @@ In function `dnnForward`, it's easy to observe there is a loop invoking `cblas_s
   }
 
 ``` 
-Arguments of `func1`, `func2`, `func3` is matrix or vector, which is easy to parallelized. Taking all factors into consider, we have two choose: a) use serial `MKL` then parallelize the whole `for loop`, b) use multi-thread `MKL` and parallelize `func1, 2, 3`. The two measures all support `MIC`, but we prefer the b) because we could benefit from the parallel optimization of `MKL` and cooperation among `MKL` and `MIC`.
+Data processed by `func1`, `func2`, `func3` are matrices or vectors, which are easy to parallelized. Taking what we discuss above into consideration, we have two choose: a) use serial `MKL` then parallelize the whole `for loop`, b) use multi-thread `MKL` and parallelize `func1`, `func 2` and `func 3`. The two measures all support `MIC`, but we prefer the b) because we could benefit from the parallel optimization of `MKL` and cooperation among `MKL` and `MIC`.[@page_file;@MKL-MIC]
 
 ~ Figure { #fig-figure; caption:"`DNN` structure"}
 ![2016-02-21 21:15:24屏幕截图]
@@ -132,16 +133,15 @@ Arguments of `func1`, `func2`, `func3` is matrix or vector, which is easy to par
 [2016-02-21 21:15:24屏幕截图]: images/2016-02-21-21-15-24-.png "2016-02-21 21:15:24屏幕截图" { width:auto; max-width:90% }
 ~
 
-
 ## Coarse Grain Parallelism
-To implenment coarse grain parallelism we hope that each thread/process finish large subcomponents. To achieve this goal `DNN` program should be divided into (mostly) independent and similar proportions, and every proportion should be as large as possible. But considering the structure of `DNN` the default ordering of `dnn*` series couldn't be changed, neither does the processing of file-reading. So in our opinion it's difficult to implement coarse grain parallelism without any change to `DNN` structure and its dataset.
+To implenment coarse grain parallelism we hope that each thread/process finish large subcomponents. To achieve this goal `DNN` program should be divided into (mostly) independent and similar proportions, and every proportion should be as large as possible. But default ordering of `dnn*` series couldn't be changed, neither does the processing of file-reading. So in our opinion it's difficult to implement coarse grain parallelism without any change to `DNN` structure and its dataset. So we don't plan to implement it.
 
 # Performance Optimization Methods
 
 ## Compiler Assisted Offload
 
 ### Scope of Offloaded Sections
-We have talked about the common structure of `DNN` series. In their `for` loop there are serial processing and `MKL` function appear alternately, and serial processing modifies data which is used as input in next `cblas_sgemm`function. Data change between `MIC` and `CPU` is slow because of `PCI-E` speeds so the best known methods[@effective_use] is to make the whole section of code an offload unit, which could reduce most of data transfer. In addition, because we nearly make the three `dnn` functions offload units, data transfer between them is less. SO, all we need do is to transfer input data in the start of `for loop` from `CPU` to `MIC` and transfer output after loop to `CPU`. `dnn` Function is like this (issues about array transfer discussed below):
+We have talked about the common structure of `DNN` series. In their `for` loop there are processing function and `MKL` function appear alternately, and the former modifies data which is used as input in `cblas_sgemm`function. Data change between `MIC` and `CPU` is slow because of the limitation of `PCI-E` so the best known methods[@effective_use] is to make the whole section of code an offload unit, which could reduce most of data transfer. In addition, if all three `dnn*` function are offload units, data transfer between them is less. Then all we only need to transfer input data to `MIC` before loop and fetch results. This is pseudocode of `dnn*` function (issues about array transfer discussed in 'Dimensionality Reduction'):
 ```java
   extern "C" int dnn***(NodeArg &nodeArg)
   {
@@ -171,8 +171,8 @@ We have talked about the common structure of `DNN` series. In their `for` loop t
 
 ```
 
-### Dimensionality Reduction
-As we know, `MIC` disallow specifying array of pointer, aka. multi-dimension array, to be use in `in` or `out` clauses. To cap it all element in those arrays used in `DNN` aren't stored consecutively in memory and have different size. So it's necessary for us to calculate array size to allocate one-dimension array. Code like this:
+### Dimensionality Reduction      
+As we know, `MIC` disallow specifying array of pointer, aka, multi-dimensional array, to be used in `in` or `out` clauses. To cap it all, in this `DNN` program the real data in two dimensional arrays aren't stored consecutively in memory -- every pointer points to a one dimensional array, which stores a matrix. So in order to allocate contiguous block of memory we should calculate offset of element of new one dimensional array before allocating. Here is an example:
 ```java
     W_len = 0;
     /* calculate element size */
@@ -190,7 +190,7 @@ As we know, `MIC` disallow specifying array of pointer, aka. multi-dimension arr
 ```
 
 ## `OpenMP` Optimization
-Though `MKL` function could decide whether to be threaded after a runtime check[@paraMKL; @MKL_threads], other serial functions still run slowly in it. To maximize the utilization it's better to have more multithreading processing[@effective_use]. In pseudocode we discuss in `4.1.1`, `fun1`, `fun2` and `fun3` are bottleneck. Those function all take one or more matrices as arguments, access and modify them then return nothing. Without data dependency it is easy to parallelize them using `OpenMp`:
+Though a function from the `MKL` could perform runtime check to choose a code path to maximize use of parallelism[@paraMKL; @MKL_threads], performance of other functions still need to improve. To maximize the utilization it's better to parallelize them [@effective_use]. In pseudocode we discuss in 'Analysis of the Serial Program', `fun1`, `fun2` and `fun3` are bottleneck of this program. Those function accept one or more matrices as arguments, make calculation then re-assign those matrices. Without data dependency it is easy to parallelize them using `OpenMp`:
 ```java
   extern "C" int errorOutput(float *E, float *Z, ...)
   {
@@ -213,13 +213,13 @@ Though `MKL` function could decide whether to be threaded after a runtime check[
 ```
 
 ## Alignment
-Alignment is important for `MKL` function to optimize program further and for compiler to assist vectorization. For example, allocating memory for matrices aligned on 64-byte boundary(or more) allows `cblas_sgemm` to have better performance. Using `mkl_alloc` is easy to allocate or deallocate an aligned `2MB(0x200000B)` memory buffer :
+Alignment is important for `MKL` function to optimize code path and for compiler to assist vectorization. For example, allocating memory for matrices aligned on 64-byte boundary(or more) allows `cblas_sgemm` to have better performance. Using `mkl_alloc` and `mkl_free` is easy to allocate or deallocate an aligned `2MB(0x200000B)` memory buffer :
  ```java
     float *d_X = (float *)mkl_malloc(N * sizeof(float), 0x200000);
     ...
     mkl_free(d_x);
  ```
-Data transfer rate between `CPU` and `MIC` is slow, so align CPU data on a 64B boundary or higher is necessary for improve data transfer rate[@effective_use]. Align at 2MB for maximum transfer rate, so we use `align modifier` to improve it and enable vectorization of code on `MIC`:
+What's more, align CPU data on a 64B boundary or higher could improve data transfer rate[@effective_use]. Align at 2MB for maximum transfer rate, so we use `align modifier` improve rate and help compiler produce vectorized code on `MIC`:
 ```java
     #pragma offload target(mic) in(pd_X: length(X_len) align(0x200000))
     ...
@@ -230,26 +230,27 @@ Data transfer rate between `CPU` and `MIC` is slow, so align CPU data on a 64B b
 This variable leads to a dynamic reduction of number of `OpenMPI` threads based on analysis of system workload, so it may reduce possible oversubscription from MKL threading.
 
 ### `MKL_NUM_THREADS=57 OMP_NUM_THREADS=57`:  
-Those variables decide a maximum threads allowed to create. Since parallelization regions of this program run in the `MIC` which has 57 cores in test platform, we set those variables equal to 57. 
+Those variables set maximum value of threads allowed to create. Since parallelization regions of this program run in the `MIC` which has 57 cores in test platform, we set those variables equal to 57. 
 
 ### `MIC_USE_2MB_BUFFERS=64K`  
 2MB pages are needed to improve transfer rate between `MIC` and `CPU`.[@page_file]
 
 # Testing Process and Results on the CPU+MIC Platform
-Our final program is tested with the `workload2` on `CPU+MIC` hybrid cluster for many times(&ge;5) and analysis in this proposal is based on those results. After averaging the time our `DNN` program costs and verifying the correctness of results, a table is created and showed below. The source code folder `dnntk_src` and log folder `exp` are packed in the file `DNN.zip`.
+Our final program is tested with the `workload2` on `CPU+MIC` hybrid cluster for many times(&ge;5) and our analysis is based on those results. After averaging the time our `DNN` program costs and verifying the correctness of results we tabulate a form. The source code folder `dnntk_src` and log folder `exp` are packed in the file `DNN.zip`.
 
-| --------------------------| ----------------| --------------------|--------------|
-| Methods                                    ||                     |              |
-| \/------------------------| ----------------|                     |              |
-| Description               |`OpenMP` Position|Time (ms)            |&emsp;Speedup |
-| --------------------------| :---:           | -------------------:|---:          |
-| `CPU`                     | \\              | &emsp;1,533,962.250 | 1.00         |
-| `MIC `                    | \\              | 7,368,252.500       | 0.28         |
-| `OpenMP `                 | `CPU`           | 366,702.218         | 4.18         |
-| `MIC` with `OpenMP` &emsp;| `CPU`           | 33.33               |              |
-| Final Result              | `MIC`           |333,205.375          | 4.60         |
-| --------------------------| ----------------| --------------------|--------------|
+| ---------------------------| ----------------| --------------------|--------------|
+| Methods                                     ||                     |              |
+| \/-------------------------| ----------------|                     |              |
+| Description                |`OpenMP` Position|Time (ms)            |&emsp;Speedup |
+| ---------------------------| :---:           | -------------------:|---:          |
+| `CPU`                      | \\              | &emsp;1,533,962.250 | 1.00         |
+| `MIC `                     | \\              | 7,368,252.500       | 0.28         |
+| `OpenMP `                  | `CPU`           | 366,702.218         | 4.18         |
+| `MIC` with `OpenMP` &emsp; | `MIC`           |                     |              |
+| Final Result[^fn-footnote] | `MIC`           |333,205.375          | 4.60         |
+| ---------------------------| ----------------| --------------------|--------------|
 { .booktable }
 
+[^fn-footnote]: Add other optimization methods like alignment.
 
 [BIB]
