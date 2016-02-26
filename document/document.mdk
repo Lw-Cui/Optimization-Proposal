@@ -10,13 +10,13 @@ Sub Title   : Competition proposal of ASC
 [TITLE]
 
 ~ Abstract
-This article is a part of competition proposal of Asia Supercomputer Student Challenge. We analysis the `DNN` program, put forward different optimization methods, test them and point their pros and cons. In the end we talk about our limitations.
+This article is a part of competition proposal of Asia Supercomputer Student Challenge. We analysis the `DNN` program, discuss different design methods, and show optimization methods with their efforts.
 ~
 
 [TOC]
 
 # Introduction
-There is a program based on a standalone hybrid CPU+MIC platform called `DNN(deep neural network)` needed to be parallelized for obtain better performance. Here is some detailed information about hardware in Figure 1, software configuration in Figure 2.
+There is a program based on a standalone hybrid CPU+MIC platform called `DNN(deep neural network)` needed to be parallelized for obtain better performance. We could use any parallel programming mode supported by `MIC` to achieve this goal. Here is some detailed information about hardware in Figure 1, software configuration in Figure 2.
 
 After optimization, the final program is tested on one computing server on the CPU+MIC hybrid cluster. Performance analysis in this proposal is based on the results of this test. 
 ~ Figure { #fig-myfigure; caption:"Hardware configuration"}
@@ -34,7 +34,7 @@ After optimization, the final program is tested on one computing server on the C
 
 # Analysis of the Serial Program
 ## Coarse Grain Analysis
-At first, we generate a call graph(Figure 3) by using `Google perfools`, a open source performance profiler, to have a glance though it. Every square represents a function, and the bigger square is, the more time corresponding function cost.
+At first, we generate a call graph(Figure 3) by using `Google perfools`, a open source performance profiler, to have a glance though it. Every square represents a function, and the bigger square is, the more time corresponding function costs.
  
 ~ Figure { #fig-myfigure; caption:"Google Perfools results"}
 ![100001994364201]
@@ -42,25 +42,22 @@ At first, we generate a call graph(Figure 3) by using `Google perfools`, a open 
 [100001994364201]: images/100001994364201.jpg "100001994364201" { width:auto; max-width:90% }
 ~
 Obviously, the hot spot is something about `MKL`. After googling
-and searching Intel document we know that MKL provides `BLAS routinues`, which includes a serial function named `cblas_?gemm`
-to compute a matrix-matrix product with general matrices.
+and searching Intel document we know that MKL provides `BLAS routinues`, which includes a serial function named `cblas_?gemm` to compute a product of general matrices.
 
-But giving that MKL function is well-optimized, we search for all position where `cblas_*gemm` is called. Results show the usage of `cblas_*gemm` appear in file `dnn_func.cpp`, more specifically, in three functions:
+But giving that MKL function is well-optimized[@sgemm], we search for all position where `cblas_*gemm` is called. Results show the usage of `cblas_*gemm` appear in file `dnn_func.cpp`, more specifically, in three functions:
 
 * ` extern "C" int dnnForward(NodeArg &nodeArg)`
 * ` extern "C" int dnnBackward(NodeArg &nodeArg)`
 * ` extern "C" int dnnUpdate(NodeArg &nodeArg)`
+
 ~ Figure { #fig-myfigure; caption:"Intel VTune top-down tree"}
 ![2016-02-19 10:36:25屏幕截图]
 [2016-02-19 10:36:25屏幕截图]: images/2016-02-19-10-36-25-.png "2016-02-19 10:36:25屏幕截图" { width:auto; max-width:90% }
 ~
 
-They call `MKL` function `cblas_sgemm` many times by `for loop` and 
+They call `MKL` function `cblas_sgemm` many times in their `for loop` and 
 cost almost 90% of all CPU time. So we guess that those function
- is what we may optimize, aka, hotspots.
-The report(see Figure 4.) showed by`Intel VTune`, another profiler, proves our guess.
-
-
+ is what we may optimize, aka, hotspots. The report(see Figure 4.) showed by`Intel VTune`, another profiler, proves our guess.
 
 According to a skim through the source code, we could establish a clear structure about this program. To simplify code, original program could be rewritten in pseudocode:
 ``` Java
@@ -74,32 +71,32 @@ According to a skim through the source code, we could establish a clear structur
     UninitProgramConfig(cpuArg)
 
 ```
-There are two nested loop before `dnn*()` series, and 
-in each of those processing function many matrix-matrix product are
-executed. Whether those hotspots could be parallelized or not depends
-on data scale, dependency and so on. Before we discuss some methods and weighed their pros and cons the implementation of `DNN` should be most carefully checked.
+There are two nested loop surrounding `dnn*()` series, and 
+in each of those processing function some matrix-matrix product are
+calculated. Whether those hotspots could be parallelized or not depends
+on data scale, dependency and so on. Before we discuss some methods and weighed their pros and cons the implementation of `DNN` should be carefully checked.
 
 ## Fine Grain Analysis
 
 ### Matrix Size
+Here is an example of how `DNN` use `cblas_sgemm`:
 
-All `cblas_sgemm` is called like this:
 ``` java
   cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,\
         numN, numA[i], numA[i-1], \
         one, d_Y[i-1], numA[i-1], d_W[i], numA[i],
         one, d_Y[i], numA[i]);
 ```
-The arguments `numN`, `numA[i]`, `numA[i-1]` indicating the size of the matrices:
+In this way we could calculate `d_Y[i-1]` * `d_W[i]` + `d_Y[i]` and assign the result to `d_Y[i]`. The arguments `numN`, `numA[i]`, `numA[i-1]` indicating the size of the matrices:
 
  * `d_Y[i-1]` is a `numN` row by `numA[i]` column matrix;
  * `d_W[i]` is a `numN` row by `numA[i-1]` column matrix;
  * `d_Y[i]` is a `numA[i-1]` row by `numA[i]` column matrix.
 
-As we known the bigger matrix size is, the higher degree of `MKL` parallelism is. But in the `DNN` program, the size of matrix is decided by `bunchSize`, a constant integer (&asymp;1024), and element (&asymp;1024) of `dnnLayerArr`, a constant integer array. The two integers are configured by specified file, and we are not allowed to modify it. For this reason there are no sufficiently large matrix to enable `auto offload model` to speed up `DNN`.[@MKL-MIC]
+As we known the bigger matrix size is, the higher degree of `MKL` parallelism is[@paraMKL]. But in the `DNN` program, the size of matrix is decided by `bunchSize`, a constant integer (&asymp;1024), and a element (&asymp;1024) of `dnnLayerArr`, which is a constant integer array. The two integers are set by configuration file, and we are not allowed to modify it. For this reason there are no sufficiently large matrix to enable `auto offload model` of `MIC` to speed up `DNN`.[@MKL-MIC]
 
 ### Cycles Index
-In the `dnn*` series every loop call `cblas_sgemm` `numN`(&asymp;7) times, which indicates the length of `dnnLayerArr`. It's regretful that the value cannot be modified by us. Giving the number of core(&asymp;24 on CPU or &asymp;60 on MIC) and constant `numN`, it's not wise to parallelize those loops.
+In the `dnn*` series every loop call `cblas_sgemm` `numN`(&asymp;7) times, which indicates the length of `dnnLayerArr`. It's regretful that the value also cannot be modified by us. Giving the number of core(&asymp;24 on CPU or &asymp;60 on MIC) and constant `numN`, we couldn't improve performance a lot by parallelizing those loops.
 
 # Parallelization Design Methods
 
@@ -239,18 +236,20 @@ Those variables decide a maximum threads allowed to create. Since parallelizatio
 2MB pages are needed to improve transfer rate between `MIC` and `CPU`.[@page_file]
 
 # Testing Process and Results on the CPU+MIC Platform
+Our final program is tested with the `workload2` on `CPU+MIC` hybrid cluster for many times(&ge;5) and analysis in this proposal is based on those results. After averaging the time our `DNN` program costs and verifying the correctness of results, a table is created and showed below. The source code folder `dnntk_src` and log folder `exp` are packed in the file `DNN.zip`.
 
-| ----------------------| ----------------------| --------------|--------------|
-| Methods                                      ||               |              |
-| \/--------------------| ----------------------|               |              |
-| Description           | Note                  |Time (ms)      |&emsp;Speedup |
-| ----------------------| ----------------------| -------------:|---:          |
-| CPU                   |                       | 1533,9652.250 | 1.0          |
-| OpenMP                | OpenMP@CPU            | 0.01          |              |
-| MIC                   | With Alignment &emsp; | 92.50         |              |
-| MIC with OpenMP &emsp;| OpenMP@MIC            | 33.33         |              |
-| Final Result          |                       |333,205.375    | 4.6          |
-| ----------------------| ----------------------| --------------|--------------|
+| --------------------------| ----------------| --------------------|--------------|
+| Methods                                    ||                     |              |
+| \/------------------------| ----------------|                     |              |
+| Description               |`OpenMP` Position|Time (ms)            |&emsp;Speedup |
+| --------------------------| :---:           | -------------------:|---:          |
+| `CPU`                     | \\              | &emsp;1,533,962.250 | 1.00         |
+| `MIC `                    | \\              | 7,368,252.500       | 0.28         |
+| `OpenMP `                 | `CPU`           | 366,702.218         | 4.18         |
+| `MIC` with `OpenMP` &emsp;| `CPU`           | 33.33               |              |
+| Final Result              | `MIC`           |333,205.375          | 4.60         |
+| --------------------------| ----------------| --------------------|--------------|
 { .booktable }
+
 
 [BIB]

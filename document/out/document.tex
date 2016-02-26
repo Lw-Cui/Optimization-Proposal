@@ -19,7 +19,7 @@
 \mdxsubtitle{\mdline{13}Competition proposal of ASC}%mdk
 
 %mdk-data-line={16}
-\mdxtitlenote{\mdline{16}2016-02-25}%mdk
+\mdxtitlenote{\mdline{16}2016-02-26}%mdk
 \mdxauthorstart{}
 %mdk-data-line={21}
 \mdxauthorname{\mdline{21}Liwei Cui}%mdk
@@ -425,14 +425,14 @@ on data scale, dependency and so on. Before we discuss some methods and weighed 
 \subsection{\mdline{218}4.3.\hspace*{0.5em}\mdline{218}Alignment}\label{sec-alignment}%mdk%mdk
 
 %mdk-data-line={219}
-\noindent\mdline{219}Alignment is important for \mdline{219}\mdcode{MKL}\mdline{219} function to optimize program further and for compiler to assist vectorization. For example, allocating memory for matrices aligned on 64-byte boundary(or more) allows \mdline{219}\mdcode{cblas\_sgemm}\mdline{219} to have better performance. Using \mdline{219}\mdcode{mkl\_alloc}\mdline{219} is easy to allocate or deallocate an aligned memory buffer:%mdk
+\noindent\mdline{219}Alignment is important for \mdline{219}\mdcode{MKL}\mdline{219} function to optimize program further and for compiler to assist vectorization. For example, allocating memory for matrices aligned on 64-byte boundary(or more) allows \mdline{219}\mdcode{cblas\_sgemm}\mdline{219} to have better performance. Using \mdline{219}\mdcode{mkl\_alloc}\mdline{219} is easy to allocate or deallocate an aligned \mdline{219}\mdcode{2MB(0x200000B)}\mdline{219} memory buffer :%mdk
 \begin{mdpre}%mdk
-\noindent~~~~{\mdcolor{navy}float}~*d\_X~=~({\mdcolor{navy}float}~*)mkl\_malloc({\mdcolor{teal}N}~*~sizeof({\mdcolor{navy}float}),~{\mdcolor{purple}2048});\\
+\noindent~~~~{\mdcolor{navy}float}~*d\_X~=~({\mdcolor{navy}float}~*)mkl\_malloc({\mdcolor{teal}N}~*~sizeof({\mdcolor{navy}float}),~{\mdcolor{purple}0x200000});\\
 ~~~~...\\
 ~~~~mkl\_free(d\_x);%mdk
 \end{mdpre}\noindent\mdline{225}Data transfer rate between \mdline{225}\mdcode{CPU}\mdline{225} and \mdline{225}\mdcode{MIC}\mdline{225} is slow, so align CPU data on a 64B boundary or higher is necessary for improve data transfer rate\mdline{225}[\mdcite{effective_use}{3}]\mdline{225}. Align at 2MB for maximum transfer rate, so we use \mdline{225}\mdcode{align~modifier}\mdline{225} to improve it and enable vectorization of code on \mdline{225}\mdcode{MIC}\mdline{225}:
 \begin{mdpre}%mdk
-\noindent~~~~\#pragma~offload~target(mic)~in(pd\_X:~length({\mdcolor{teal}X\_len})~align({\mdcolor{purple}2048}))\\
+\noindent~~~~\#pragma~offload~target(mic)~in(pd\_X:~length({\mdcolor{teal}X\_len})~align({\mdcolor{purple}0x200000}))\\
 ~~~~...%mdk
 \end{mdpre}
 %mdk-data-line={231}
@@ -458,23 +458,26 @@ on data scale, dependency and so on. Before we discuss some methods and weighed 
 
 %mdk-data-line={241}
 \section{\mdline{241}5.\hspace*{0.5em}\mdline{241}Testing Process and Results on the CPU+MIC Platform}\label{sec-testing-process-and-results-on-the-cpumic-platform}%mdk%mdk
-\begin{mdtabular}{3}{\dimeval{(\linewidth)/3}}{1ex}%mdk
-\begin{tabular}{llr}\midrule[\dimpx{2}]
-\multicolumn{2}{c}{{\mdseries\mdline{244} Methods}}&\multicolumn{1}{r}{{\mdseries\mdline{244}}}\\
+
+%mdk-data-line={242}
+\noindent\mdline{242}Our final program is tested with the \mdline{242}\mdcode{workload2}\mdline{242} on \mdline{242}\mdcode{CPU+MIC}\mdline{242} hybrid cluster for many times(\mdline{242}\ensuremath{\geq}\mdline{242}5) and analysis in this proposal is based on those results. After averaging the time our \mdline{242}\mdcode{DNN}\mdline{242} program costs and verifying the correctness of results, a table is created and showed below. The source code folder \mdline{242}\mdcode{dnntk\_src}\mdline{242} and log folder \mdline{242}\mdcode{exp}\mdline{242} are packed in the file \mdline{242}\mdcode{DNN.zip}\mdline{242}.%mdk
+\begin{mdtabular}{4}{\dimeval{(\linewidth)/4}}{1ex}%mdk
+\begin{tabular}{lcrr}\midrule[\dimpx{2}]
+\multicolumn{2}{c}{{\mdseries\mdline{245} Methods}}&\multicolumn{1}{r}{{\mdseries\mdline{245}}}&{\mdseries\mdline{245}}\\
 \cmidrule{1-1}\cmidrule{2-2}
-{\mdseries\mdline{246} Description}&\multicolumn{1}{c}{{\mdseries\mdline{246} Notes}}&{\mdseries\mdline{246}       \mdline{246}\hspace*{1em}\mdline{246}Time (ms)}\\
+\multicolumn{1}{c}{{\mdseries\mdline{247} Description}}&{\mdseries\mdline{247}\mdcode{OpenMP}\mdline{247} Position}&{\mdseries\mdline{247}Time (ms)}&{\mdseries\mdline{247}\hspace*{1em}\mdline{247}Speedup}\\
 
 \midrule
-\mdline{248} CPU&\mdline{248}&\mdline{248} 13.65\\
-\mdline{249} OpenMP&\mdline{249}&\mdline{249} 0.01\\
-\mdline{250} MIC&\mdline{250}&\mdline{250} 92.50\\
-\mdline{251} MIC with OpenMP\mdline{251}\hspace*{1em}&\mdline{251}&\mdline{251} 33.33\\
-\mdline{252} Final Result&\mdline{252}&\mdline{252} 8.99\\
+\mdline{249} \mdline{249}\mdcode{CPU}\mdline{249}&\mdline{249} \mdline{249}\textbackslash{}\mdline{249}&\mdline{249} \mdline{249}\hspace*{1em}\mdline{249}1,533,962.250&\mdline{249} 1.00\\
+\mdline{250} \mdline{250}\mdcode{MIC~}\mdline{250}&\mdline{250} \mdline{250}\textbackslash{}\mdline{250}&\mdline{250} 7,368,252.500&\mdline{250} 0.28\\
+\mdline{251} \mdline{251}\mdcode{OpenMP~}\mdline{251}&\mdline{251} \mdline{251}\mdcode{CPU}\mdline{251}&\mdline{251} 366,702.218&\mdline{251} 4.18\\
+\mdline{252} \mdline{252}\mdcode{MIC}\mdline{252} with \mdline{252}\mdcode{OpenMP}\mdline{252} \mdline{252}\hspace*{1em}&\mdline{252} \mdline{252}\mdcode{CPU}\mdline{252}&\mdline{252} 33.33&\mdline{252}\\
+\mdline{253} Final Result&\mdline{253} \mdline{253}\mdcode{MIC}\mdline{253}&\mdline{253}333,205.375&\mdline{253} 4.60\\
 \midrule[\dimpx{2}]
 \end{tabular}\end{mdtabular}
 
-%mdk-data-line={256;out/document-bib.bbl.mdk:1}
-%mdk-data-line={256;out/document-bib.bbl.mdk:2}
+%mdk-data-line={258;out/document-bib.bbl.mdk:1}
+%mdk-data-line={258;out/document-bib.bbl.mdk:2}
 \mdsetrefname{References}%mdk
 {\mdbibindent{0}%mdk
 \begin{thebibliography}{5}%mdk
